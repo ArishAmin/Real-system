@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Invoice Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #3f37c9;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --success: #4cc9f0;
+            --border-radius: 8px;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f7fb;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--gray);
+        }
+
+        select, input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+
+        .btn-edit {
+            background-color: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 0.5rem 1rem;
+            margin-left: 1rem;
+        }
+
+        .btn-edit:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+
+        .invoice-container {
+            margin-top: 2rem;
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .invoice-id {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
+        }
+
+        .invoice-table th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+        }
+
+        .invoice-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .invoice-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .total-row {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+
+        .vendor-id-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .vendor-id-container input {
+            flex: 1;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .status-message {
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .success {
+            background-color: rgba(76, 201, 240, 0.2);
+            color: #0a6c74;
+        }
+
+        .error {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: #842029;
+        }
+
+        .readonly-field {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            padding: 0.75rem 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 0.5rem;
+        }
+
+        .editable-field {
+            display: none;
+            width: 100%;
+        }
+
+        .editing .readonly-field {
+            display: none;
+        }
+
+        .editing .editable-field {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">InvoicePro</div>
+            <div class="tagline">Premium Invoice Generation</div>
+        </header>
+
+        <div class="card">
+            <h2 class="card-title">Vendor Information</h2>
+            <div class="form-group">
+                <label for="country">Country</label>
+                <select id="country" name="country">
+                    <option value="">Select a country</option>
+                    {% for country in countries %}
+                    <option value="{{ country.code }}">{{ country.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div id="vendor-section" class="hidden">
+                <div class="form-group">
+                    <label>Vendor ID</label>
+                    <div class="vendor-id-container">
+                        <div class="readonly-field" id="vendor-id-display"></div>
+                        <input type="text" id="vendor-id-input" class="editable-field">
+                        <button id="edit-vendor-id" class="btn-edit">Edit</button>
+                        <button id="save-vendor-id" class="btn-edit hidden">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="invoice-section" class="card hidden">
+            <h2 class="card-title">Invoice Details</h2>
+            
+            <div class="invoice-container">
+                <div class="invoice-header">
+                    <div>
+                        <div class="invoice-id">Invoice #<span id="invoice-id-display" class="readonly-field"></span>
+                            <input type="text" id="invoice-id-input" class="editable-field">
+                        </div>
+                        <div>Date: <span id="invoice-date-display" class="readonly-field"></span>
+                            <input type="date" id="invoice-date-input" class="editable-field">
+                        </div>
+                    </div>
+                    <button id="edit-invoice-btn" class="btn-edit">Edit Invoice</button>
+                    <button id="save-invoice-btn" class="btn-edit hidden">Save Changes</button>
+                </div>
+
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th class="text-right">Amount (USD)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div id="invoice-description-display" class="readonly-field"></div>
+                                <input type="text" id="invoice-description-input" class="editable-field">
+                            </td>
+                            <td>
+                                <div id="invoice-amount-display" class="readonly-field text-right"></div>
+                                <input type="number" id="invoice-amount-input" class="editable-field text-right" step="0.01" min="0">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="status-message" class="status-message hidden"></div>
+
+            <button id="proceed-btn" class="btn btn-block">Save Invoice</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const countrySelect = document.getElementById('country');
+            const vendorSection = document.getElementById('vendor-section');
+            const vendorIdDisplay = document.getElementById('vendor-id-display');
+            const vendorIdInput = document.getElementById('vendor-id-input');
+            const editVendorIdBtn = document.getElementById('edit-vendor-id');
+            const saveVendorIdBtn = document.getElementById('save-vendor-id');
+            const invoiceSection = document.getElementById('invoice-section');
+            const invoiceIdDisplay = document.getElementById('invoice-id-display');
+            const invoiceIdInput = document.getElementById('invoice-id-input');
+            const invoiceDateDisplay = document.getElementById('invoice-date-display');
+            const invoiceDateInput = document.getElementById('invoice-date-input');
+            const invoiceDescriptionDisplay = document.getElementById('invoice-description-display');
+            const invoiceDescriptionInput = document.getElementById('invoice-description-input');
+            const invoiceAmountDisplay = document.getElementById('invoice-amount-display');
+            const invoiceAmountInput = document.getElementById('invoice-amount-input');
+            const editInvoiceBtn = document.getElementById('edit-invoice-btn');
+            const saveInvoiceBtn = document.getElementById('save-invoice-btn');
+            const proceedBtn = document.getElementById('proceed-btn');
+            const statusMessage = document.getElementById('status-message');
+
+            // Country selection handler
+            countrySelect.addEventListener('change', function() {
+                if (this.value) {
+                    generateVendorId(this.value);
+                    vendorSection.classList.remove('hidden');
+                    generateInvoiceDetails();
+                    invoiceSection.classList.remove('hidden');
+                } else {
+                    vendorSection.classList.add('hidden');
+                    invoiceSection.classList.add('hidden');
+                }
+            });
+
+            // Generate vendor ID
+            function generateVendorId(countryCode) {
+                fetch('/generate_vendor_id', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ country_code: countryCode }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    vendorIdDisplay.textContent = data.vendor_id;
+                    vendorIdInput.value = data.vendor_id;
+                });
+            }
+
+            // Generate invoice details
+            function generateInvoiceDetails() {
+                fetch('/generate_invoice_details', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    invoiceIdDisplay.textContent = data.invoice_id;
+                    invoiceIdInput.value = data.invoice_id;
+                    invoiceDateDisplay.textContent = data.date;
+                    invoiceDateInput.value = data.date;
+                    invoiceDescriptionDisplay.textContent = data.description;
+                    invoiceDescriptionInput.value = data.description;
+                    invoiceAmountDisplay.textContent = '$' + data.amount.toFixed(2);
+                    invoiceAmountInput.value = data.amount.toFixed(2);
+                });
+            }
+
+            // Edit vendor ID
+            editVendorIdBtn.addEventListener('click', function() {
+                vendorSection.classList.add('editing');
+                editVendorIdBtn.classList.add('hidden');
+                saveVendorIdBtn.classList.remove('hidden');
+            });
+
+            // Save vendor ID
+            saveVendorIdBtn.addEventListener('click', function() {
+                vendorIdDisplay.textContent = vendorIdInput.value;
+                vendorSection.classList.remove('editing');
+                editVendorIdBtn.classList.remove('hidden');
+                saveVendorIdBtn.classList.add('hidden');
+            });
+
+            // Edit invoice details
+            editInvoiceBtn.addEventListener('click', function() {
+                invoiceSection.classList.add('editing');
+                editInvoiceBtn.classList.add('hidden');
+                saveInvoiceBtn.classList.remove('hidden');
+            });
+
+            // Save invoice details
+            saveInvoiceBtn.addEventListener('click', function() {
+                invoiceIdDisplay.textContent = invoiceIdInput.value;
+                invoiceDateDisplay.textContent = invoiceDateInput.value;
+                invoiceDescriptionDisplay.textContent = invoiceDescriptionInput.value;
+                invoiceAmountDisplay.textContent = '$' + parseFloat(invoiceAmountInput.value).toFixed(2);
+                invoiceSection.classList.remove('editing');
+                editInvoiceBtn.classList.remove('hidden');
+                saveInvoiceBtn.classList.add('hidden');
+            });
+
+            // Save invoice data
+            proceedBtn.addEventListener('click', function() {
+                const vendorId = vendorIdDisplay.textContent;
+                const country = countrySelect.options[countrySelect.selectedIndex].text;
+                const invoiceId = invoiceIdDisplay.textContent;
+                const date = invoiceDateDisplay.textContent;
+                const description = invoiceDescriptionDisplay.textContent;
+                const amount = parseFloat(invoiceAmountDisplay.textContent.replace('$', ''));
+
+                const data = {
+                    vendor_id: vendorId,
+                    country: country,
+                    invoice_id: invoiceId,
+                    date: date,
+                    description: description,
+                    amount: amount
+                };
+
+                fetch('/save_invoice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showStatus('Invoice saved successfully!', 'success');
+                        // Reset form after 2 seconds
+                        setTimeout(() => {
+                            statusMessage.classList.add('hidden');
+                            countrySelect.value = '';
+                            vendorSection.classList.add('hidden');
+                            invoiceSection.classList.add('hidden');
+                        }, 2000);
+                    } else {
+                        showStatus('Error saving invoice: ' + data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showStatus('Error: ' + error.message, 'error');
+                });
+            });
+
+            // Show status message
+            function showStatus(message, type) {
+                statusMessage.textContent = message;
+                statusMessage.className = `status-message ${type}`;
+                statusMessage.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
