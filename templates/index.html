@@ -447,6 +447,7 @@
                             countrySelect.value = '';
                             vendorSection.classList.add('hidden');
                             invoiceSection.classList.add('hidden');
+                            window.location.href = data.redirect;
                         }, 2000);
                     } else {
                         showStatus('Error saving invoice: ' + data.message, 'error');

@@ -1,12 +1,16 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import uuid
 from datetime import datetime, timedelta
 import os
 from supabase import create_client, Client
 import random
+import requests
 
 app = Flask(__name__)
+app.secret_key = 'your_super_secret_key_here'
 
+WORLDPAY_USERNAME = os.getenv('WORLDPAY_USERNAME')
+WORLDPAY_PASSWORD = os.getenv('WORLDPAY_PASSWORD')
 # Supabase configuration
 SUPABASE_URL = "https://tddovxrnfnrdvrludfwb.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkZG92eHJuZm5yZHZybHVkZndiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyOTUwMTgsImV4cCI6MjA2OTg3MTAxOH0.iTug0w1UXP9gRWIyhhYQrudt-UAASXAvWtvXfhe_oqI"
@@ -22,6 +26,14 @@ COUNTRIES = [
     {"name": "Japan", "code": "JP"},
     {"name": "Australia", "code": "AU"},
     {"name": "India", "code": "IN"},
+    {"name": "China", "code": "CN"},
+    {"name": "Singapore", "code": "SG"},
+    {"name": "Malaysia", "code": "MY"},
+    {"name": "Brazil", "code": "BR"},
+    {"name": "South Africa", "code": "ZA"},
+    {"name": "Mexico", "code": "MX"},
+    {"name": "Italy", "code": "IT"},
+    {"name": "Spain", "code": "ES"}
 ]
 
 # Sample invoice descriptions
@@ -107,6 +119,7 @@ def generate_invoice_details():
 def save_invoice():
     data = request.json
     
+    session['country'] = data['country']
     # Save vendor data
     vendor_data = {
         "vendor_id": data['vendor_id'],
@@ -126,7 +139,186 @@ def save_invoice():
     }
     supabase.table('invoices').insert(invoice_data).execute()
     
-    return redirect(url_for('bills'))
+    return jsonify({"status": "success", "redirect": url_for('bills')})
+
+@app.route('/process_payment', methods=['POST'])
+def process_payment():
+    try:
+        # Get data from request and update session
+        data = request.json
+        session.update({
+            'selected_invoices': data['invoices'],
+            'total_amount': data['totalAmount']
+        })
+
+        country = session.get('country', '')
+        
+        # Define country-specific templates and settings
+        COUNTRY_SETTINGS = {
+            'China': {
+                'template': 'china.html',
+                'currency': 'CNY',
+                'exchange_rate': 7.18,
+                
+            },
+            'IN': {
+                'template': 'india.html',
+                'currency': 'INR',
+                'exchange_rate': 83.5,
+                
+            },
+            'US': {
+                'template': 'default_payment.html',
+                'currency': 'USD',
+                'exchange_rate': 1,
+                
+            }
+            # Add more countries as needed
+        }
+        
+        # Get country settings or use defaults
+        settings = COUNTRY_SETTINGS.get(country, {
+            'template': 'default_payment.html',
+            'currency': 'USD',
+            'exchange_rate': 1,
+            'payment_methods': ['credit_card']
+        })
+        
+        # Calculate converted amount
+        converted_amount = session['total_amount'] * settings['exchange_rate']
+        
+        # Render the appropriate template directly
+        return render_template(
+            settings['template'],
+            country=session.get('country_name', ''),
+            country_code=country,
+            total_usd=session['total_amount'],
+            total_local=round(converted_amount, 2),
+            currency=settings['currency'],
+            exchange_rate=settings['exchange_rate'],
+            exchange_date=datetime.now().strftime('%Y-%m-%d')
+        )
+        
+    except Exception as e:
+        app.logger.error(f"Payment processing error: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Payment processing failed'
+        }), 500
+
+@app.route('/process_alipay', methods=['POST'])
+def process_alipay():
+    """Dedicated Alipay processor with country flexibility"""
+    try:
+        # 1. Get country from session (set during invoice creation)
+        country = session.get('country', 'CN') # Default to China
+        
+        # 2. Country validation and config
+        COUNTRY_SETTINGS = {
+            'China': {'currency': 'CNY', 'gateway': 'alipay_cn', 'language': 'zh'},
+            'SG': {'currency': 'SGD', 'gateway': 'alipay_cn', 'language': 'en'},
+            'MY': {'currency': 'MYR', 'gateway': 'alipay_cn', 'language': 'en'}
+        }
+        
+        if country not in COUNTRY_SETTINGS:
+            return jsonify({
+                'status': 'error',
+                'message': f'Alipay not supported in {country}',
+                'supported_countries': list(COUNTRY_SETTINGS.keys())
+            }), 400
+
+        config = COUNTRY_SETTINGS[country]
+        
+        # Calculate total_local using session's total_amount and a default exchange rate (set to 1 if not present)
+        total_amount = session.get('total_amount', 0)
+        # You may want to define exchange rates for each country; here we use 1 as a fallback
+        exchange_rates = {'China': 7.18, 'SG': 1.36, 'MY': 4.7}
+        exchange_rate = exchange_rates.get(country, 1)
+        total_local = float(total_amount) * exchange_rate
+
+        # 3. Build fixed Alipay payload (structure never changes)
+        payload = {
+            "transactionReference": f"ALP-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            "merchant": {
+                "entity": "default",
+            },
+            "instruction": {
+                "method": "alipay_cn",
+                "value": {
+                    "amount": int(float(total_local) * 100),  # cents
+                    "currency": config['currency']
+                },
+                "narrative": {
+                    "line1": "MindPalace Service"
+                },
+                "paymentInstrument": {
+                    "type": "direct",
+                    "language": config['language']
+                },
+                "resultUrls": {
+                    "pending": url_for('bills', _external=True),
+                    "failure": url_for('bills', _external=True),
+                    "success": url_for('payment_success', _external=True),
+                    "cancel": url_for('bills', _external=True)
+                },
+                "deviceData": {
+                    "device": "desktop",
+                    "operatingSystem": "windows"
+               },
+                "customer": {
+                    "firstName": "Xhiao",
+                    "lastName": "Xubeg",
+                    "email": "xhiao@example.com"
+                }
+            }
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "WP-Api-Version": "2024-07-01"
+        }
+        # 4. Call Alipay API
+        response = requests.post(
+            "https://try.access.worldpay.com/apmPayments",
+            json=payload,
+            headers=headers,
+            auth=(WORLDPAY_USERNAME, WORLDPAY_PASSWORD),
+            timeout=30
+        )
+        # 5. Handle response
+        if response.status_code == 201:
+            data = response.json()
+            session.update({
+                'payment_id': data.get('paymentId'),
+                'transaction_ref': payload['transactionReference'],
+                'paid_amount': payload['instruction']['value']['amount'] / 100,
+                'paid_currency': config['currency']
+            })
+            return jsonify({
+                'status': 'success',
+                'redirect_url': data.get('redirect')
+            })
+
+        return jsonify({
+            'status': 'error',
+            'message': 'Alipay API error',
+            'response': response.text
+        }), 400
+
+    except Exception:
+        return jsonify({'status': 'error', 'message': 'Processing failed'}), 500
+
+@app.route('/success')
+def payment_success():
+    """Unified success page for all payment methods"""
+    return render_template('success.html',
+        payment_id=session.get('payment_id'),
+        transaction_ref=session.get('transaction_ref'),
+        amount_usd=session.get('total_amount'),
+        amount_paid=session.get('paid_amount'),
+        currency=session.get('paid_currency'),
+        method=session.get('payment_method'),
+        date=datetime.now().strftime('%Y-%m-%d %H:%M')
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)

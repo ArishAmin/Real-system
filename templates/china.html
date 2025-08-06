@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>China Payment Gateway</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #E60012; /* Alipay red */
+            --secondary: #07C160; /* WeChat green */
+            --dark: #222;
+            --light: #f8f9fa;
+            --border-radius: 8px;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f7fb;
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .payment-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .payment-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-item {
+            margin-bottom: 1rem;
+        }
+
+        .summary-label {
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-value {
+            font-weight: 600;
+        }
+
+        .currency-conversion {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .payment-options {
+            margin-top: 2rem;
+        }
+
+        .payment-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            border: 1px solid #eee;
+            border-radius: var(--border-radius);
+            margin-bottom: 1.5rem;
+        }
+
+        .payment-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+            object-fit: contain;
+        }
+
+        .payment-name {
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .btn-alipay {
+            background-color: var(--primary);
+        }
+
+        .btn-alipay:hover {
+            background-color: #c5000f;
+        }
+
+        .btn-wechat {
+            background-color: var(--secondary);
+        }
+
+        .btn-wechat:hover {
+            background-color: #06ad56;
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            margin: 1rem auto;
+            background-color: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px dashed #ccc;
+        }
+
+        .exchange-rate-note {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        .amount-display {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 1rem 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>China Payment Gateway</h1>
+            <p>Complete your payment in {{ currency }}</p>
+        </div>
+
+        <div class="payment-card">
+            <h2 class="section-title">Payment Summary</h2>
+            
+            <div class="payment-summary">
+                <div class="summary-item">
+                    <div class="summary-label">Total Amount (USD)</div>
+                    <div class="summary-value">${{ "%.2f"|format(total_usd) }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Total Amount (CNY)</div>
+                    <div class="summary-value">¥{{ "%.2f"|format(total_local) }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Exchange Rate</div>
+                    <div class="summary-value">1 USD = {{ exchange_rate }} CNY</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Payment Date</div>
+                    <div class="summary-value">{{ exchange_date }}</div>
+                </div>
+            </div>
+
+            <div class="payment-options">
+                <h2 class="section-title">Available Payment Methods</h2>
+                
+                <!-- Alipay Option -->
+                <div class="payment-option">
+                    <img src="https://cdn-icons-png.flaticon.com/512/196/196566.png" alt="Alipay" class="payment-icon">
+                    <div class="payment-name">Alipay</div>
+                    <div class="amount-display">¥{{ "%.2f"|format(total_local) }}</div>
+                    <div class="qr-code">
+                        [Dynamic QR Code for ¥{{ "%.2f"|format(total_local) }}]
+                    </div>
+                    <button class="btn btn-alipay" id="alipay-btn">Pay with Alipay</button>
+                </div>
+
+                <!-- WeChat Pay Option -->
+                <div class="payment-option">
+                    <img src="https://cdn-icons-png.flaticon.com/512/196/196561.png" alt="WeChat Pay" class="payment-icon">
+                    <div class="payment-name">WeChat Pay</div>
+                    <div class="amount-display">¥{{ "%.2f"|format(total_local) }}</div>
+                    <div class="qr-code">
+                        [Dynamic QR Code for ¥{{ "%.2f"|format(total_local) }}]
+                    </div>
+                    <button class="btn btn-wechat" id="wechat-btn">Pay with WeChat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Alipay Payment Processing
+            document.getElementById('alipay-btn').addEventListener('click', async function() {
+                try {
+                    const response = await fetch('/process_alipay', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            amount: {{ total_local }},
+                            currency: 'CNY'
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.status === 'success' && result.redirect_url) {
+                        // Redirect to Alipay payment page
+                        window.location.href = result.redirect_url;
+                    } else {
+                        alert('Payment failed: ' + (result.message || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Payment error:', error);
+                    alert('Payment processing error');
+                }
+            });
+
+            // WeChat Pay Payment Processing
+            document.getElementById('wechat-btn').addEventListener('click', function() {
+                alert('WeChat Pay integration would be implemented similarly');
+                // In a real implementation, this would call /process_wechatpay
+            });
+        });
+    </script>
+</body>
+</html>
