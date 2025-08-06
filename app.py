@@ -1,6 +1,6 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 from supabase import create_client, Client
 import random
@@ -39,6 +39,49 @@ INVOICE_DESCRIPTIONS = [
 @app.route('/')
 def index():
     return render_template('index.html', countries=COUNTRIES)
+
+@app.route('/bills')
+def bills():
+    # Get the latest invoice (the one just created)
+    latest_invoice = supabase.table('invoices').select('*').order('created_at', desc=True).limit(1).execute().data[0]
+    
+    # Generate 3 random invoices (not saved to database)
+    random_invoices = generate_random_invoices(3)
+    
+    return render_template('bills.html', 
+                         latest_invoice=latest_invoice,
+                         random_invoices=random_invoices)
+
+def generate_random_invoices(count):
+    descriptions = [
+        "Web Development Services",
+        "Consulting Fees",
+        "Software License",
+        "Cloud Hosting",
+        "Technical Support",
+        "UI/UX Design",
+        "API Integration",
+        "Data Analysis",
+        "Server Maintenance",
+        "Database Administration"
+    ]
+    
+    vendors = ["VEN-US", "VEN-CA", "VEN-UK", "VEN-DE", "VEN-FR"]
+    
+    invoices = []
+    for _ in range(count):
+        # Generate random date within last 30 days
+        random_date = (datetime.now() - timedelta(days=random.randint(1, 30))).strftime('%Y-%m-%d')
+        
+        invoices.append({
+            "invoice_id": f"INV-{random_date.replace('-', '')}-{random.randint(1000, 9999)}",
+            "date": random_date,
+            "description": random.choice(descriptions),
+            "amount": round(random.uniform(50, 2000), 2),
+            "vendor_id": random.choice(vendors)
+        })
+    
+    return invoices
 
 @app.route('/generate_vendor_id', methods=['POST'])
 def generate_vendor_id():
@@ -83,7 +126,7 @@ def save_invoice():
     }
     supabase.table('invoices').insert(invoice_data).execute()
     
-    return jsonify({"status": "success", "message": "Data saved successfully"})
+    return redirect(url_for('bills'))
 
 if __name__ == '__main__':
     app.run(debug=True)

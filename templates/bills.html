@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pay Bills</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --border-radius: 8px;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f7fb;
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 2rem;
+        }
+
+        .invoice-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .invoice-card.selected {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .invoice-id {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .invoice-details {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1rem;
+        }
+
+        .invoice-amount {
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .checkbox-container {
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox-container input {
+            margin-right: 0.5rem;
+            transform: scale(1.2);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 2rem;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .total-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .total-amount {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .note {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Select Bills to Pay</h1>
+        <p class="note">Your new invoice is automatically selected. You may also select additional sample invoices below.</p>
+        
+        <div class="invoice-list">
+            <!-- Latest Invoice (just created) -->
+            <div class="invoice-card selected" data-id="{{ latest_invoice.invoice_id }}" data-amount="{{ latest_invoice.amount }}">
+                <div class="invoice-header">
+                    <div class="invoice-id">Invoice #{{ latest_invoice.invoice_id }}</div>
+                    <div class="invoice-date">{{ latest_invoice.date }}</div>
+                </div>
+                <div class="invoice-details">
+                    <div class="invoice-description">{{ latest_invoice.description }}</div>
+                    <div class="invoice-amount">${{ "%.2f"|format(latest_invoice.amount) }}</div>
+                </div>
+                <div class="vendor-id">Vendor: {{ latest_invoice.vendor_id }}</div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="invoice-{{ latest_invoice.invoice_id }}" checked>
+                    <label for="invoice-{{ latest_invoice.invoice_id }}">Pay this invoice</label>
+                </div>
+            </div>
+
+            <!-- Randomly Generated Invoices -->
+            {% for invoice in random_invoices %}
+            <div class="invoice-card" data-id="{{ invoice.invoice_id }}" data-amount="{{ invoice.amount }}">
+                <div class="invoice-header">
+                    <div class="invoice-id">Invoice #{{ invoice.invoice_id }}</div>
+                    <div class="invoice-date">{{ invoice.date }}</div>
+                </div>
+                <div class="invoice-details">
+                    <div class="invoice-description">{{ invoice.description }}</div>
+                    <div class="invoice-amount">${{ "%.2f"|format(invoice.amount) }}</div>
+                </div>
+                <div class="vendor-id">Vendor: {{ latest_invoice.vendor_id }}</div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="invoice-{{ invoice.invoice_id }}">
+                    <label for="invoice-{{ invoice.invoice_id }}">Pay this invoice</label>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="total-section">
+            <div>
+                <div class="total-amount">
+                    Total Amount: $<span id="total-amount">{{ "%.2f"|format(latest_invoice.amount) }}</span>
+                </div>
+                <div class="selected-count">
+                    <span id="selected-count">1</span> invoice(s) selected
+                </div>
+            </div>
+            <button id="pay-selected" class="btn">Proceed to Payment</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const invoiceCards = document.querySelectorAll('.invoice-card');
+            const totalAmountElement = document.getElementById('total-amount');
+            const selectedCountElement = document.getElementById('selected-count');
+            const payButton = document.getElementById('pay-selected');
+            
+            let selectedInvoices = [{
+                id: "{{ latest_invoice.invoice_id }}",
+                amount: parseFloat("{{ latest_invoice.amount }}")
+            }];
+            let totalAmount = parseFloat("{{ latest_invoice.amount }}");
+
+            // Toggle invoice selection
+            invoiceCards.forEach(card => {
+                const checkbox = card.querySelector('input[type="checkbox"]');
+                
+                checkbox.addEventListener('change', function() {
+                    const invoiceId = card.dataset.id;
+                    const amount = parseFloat(card.dataset.amount);
+                    
+                    if (this.checked) {
+                        card.classList.add('selected');
+                        selectedInvoices.push({
+                            id: invoiceId,
+                            amount: amount
+                        });
+                        totalAmount += amount;
+                    } else {
+                        card.classList.remove('selected');
+                        selectedInvoices = selectedInvoices.filter(inv => inv.id !== invoiceId);
+                        totalAmount -= amount;
+                    }
+                    
+                    updateTotals();
+                });
+            });
+
+            // Update totals display
+            function updateTotals() {
+                totalAmountElement.textContent = totalAmount.toFixed(2);
+                selectedCountElement.textContent = selectedInvoices.length;
+            }
+
+            // Handle payment
+            payButton.addEventListener('click', function() {
+                // Prepare data for payment processing
+                const paymentData = {
+                    invoices: selectedInvoices,
+                    totalAmount: totalAmount,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // In a real app, you would send this to your payment processor
+                console.log('Payment data:', paymentData);
+                
+                // For demo purposes, show confirmation
+                alert(`Ready to pay $${totalAmount.toFixed(2)} for ${selectedInvoices.length} invoice(s)`);
+                
+                // Here you would typically redirect to a payment gateway
+                // window.location.href = '/payment-processor?data=' + encodeURIComponent(JSON.stringify(paymentData));
+            });
+        });
+    </script>
+</body>
+</html>
