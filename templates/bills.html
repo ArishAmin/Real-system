@@ -8,23 +8,23 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #4F46E5;
-            --primary-light: #6366F1;
-            --primary-dark: #4338CA;
-            --dark: #111827;
-            --light: #F9FAFB;
-            --gray: #6B7280;
-            --gray-light: #E5E7EB;
+            --primary: #1e88e5;
+            --primary-dark: #1565c0;
+            --primary-light: #64b5f6;
+            --dark: #263238;
+            --light: #f5f7fa;
+            --gray: #607d8b;
+            --gray-light: #cfd8dc;
             --success: #10B981;
-            --border-radius: 12px;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --border-radius: 10px;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.12);
+            --transition: all 0.3s ease;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #F3F4F6;
+            background-color: #f0f5ff;
             color: var(--dark);
             line-height: 1.6;
             padding: 0;
@@ -37,38 +37,34 @@
             padding: 2rem;
         }
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .page-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: var(--shadow-lg);
             margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--gray-light);
         }
 
-        .logo {
+        .page-header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .logo-emoji {
-            font-size: 1.25rem;
+            justify-content: space-between;
         }
 
         .page-title {
-            color: var(--dark);
-            margin-bottom: 1.5rem;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 1rem;
         }
 
-        .page-title i {
-            color: var(--primary);
+        .logo-emoji {
+            font-size: 1.5rem;
         }
 
         .invoice-card {
@@ -88,7 +84,7 @@
 
         .invoice-card.selected {
             border-color: var(--primary);
-            background-color: rgba(79, 70, 229, 0.05);
+            background-color: rgba(30, 136, 229, 0.05);
         }
 
         .invoice-header {
@@ -199,7 +195,7 @@
             color: var(--gray);
             margin-bottom: 2rem;
             padding: 1rem;
-            background-color: rgba(79, 70, 229, 0.05);
+            background-color: rgba(30, 136, 229, 0.05);
             border-radius: var(--border-radius);
             border-left: 4px solid var(--primary);
         }
@@ -214,29 +210,25 @@
         }
 
         .badge-primary {
-            background-color: #EEF2FF;
+            background-color: #E3F2FD;
             color: var(--primary);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header class="page-header">
+    <header class="page-header">
         <div class="page-header-content">
             <div class="logo">
-                
-                <h1 class="page-title">🌐 China Payment Gateway</h1>
+                <h1 class="page-title">🌐 APG Portal</h1>
             </div>
-            <div style="color: rgba(255,255,255,0.8);">Secure Payment Processing</div>
         </div>
     </header>
 
+    <div class="container">
         <h1 class="page-title">
             <i class="fas fa-file-invoice-dollar"></i>
             Select Bills to Pay
         </h1>
-        
-        
         
         <div class="invoice-list">
             <!-- Latest Invoice (just created) -->
