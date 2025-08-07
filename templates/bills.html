@@ -5,70 +5,131 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pay Bills</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #4361ee;
-            --primary-dark: #3a56d4;
-            --dark: #1a1a2e;
-            --light: #f8f9fa;
-            --gray: #6c757d;
-            --border-radius: 8px;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --primary: #4F46E5;
+            --primary-light: #6366F1;
+            --primary-dark: #4338CA;
+            --dark: #111827;
+            --light: #F9FAFB;
+            --gray: #6B7280;
+            --gray-light: #E5E7EB;
+            --success: #10B981;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f5f7fb;
+            background-color: #F3F4F6;
             color: var(--dark);
             line-height: 1.6;
-            padding: 2rem;
+            padding: 0;
+            margin: 0;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 2rem;
         }
 
-        h1 {
-            color: var(--primary);
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo-emoji {
+            font-size: 1.25rem;
+        }
+
+        .page-title {
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .page-title i {
+            color: var(--primary);
         }
 
         .invoice-card {
             background: white;
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
-            padding: 1.5rem;
-            margin-bottom: 1rem;
+            padding: 1.75rem;
+            margin-bottom: 1.25rem;
             border: 2px solid transparent;
-            transition: all 0.3s ease;
+            transition: var(--transition);
+            border: 1px solid var(--gray-light);
+        }
+
+        .invoice-card:hover {
+            box-shadow: var(--shadow-lg);
         }
 
         .invoice-card.selected {
             border-color: var(--primary);
-            background-color: rgba(67, 97, 238, 0.05);
+            background-color: rgba(79, 70, 229, 0.05);
         }
 
         .invoice-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 1rem;
+            align-items: center;
+            margin-bottom: 1.25rem;
         }
 
         .invoice-id {
             font-weight: 600;
             color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .invoice-date {
+            color: var(--gray);
+            font-size: 0.9rem;
         }
 
         .invoice-details {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .invoice-description {
+            color: var(--dark);
         }
 
         .invoice-amount {
             font-weight: 600;
             text-align: right;
+            color: var(--dark);
+        }
+
+        .vendor-id {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
         }
 
         .checkbox-container {
@@ -78,27 +139,38 @@
         }
 
         .checkbox-container input {
-            margin-right: 0.5rem;
-            transform: scale(1.2);
+            margin-right: 0.75rem;
+            transform: scale(1.25);
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .checkbox-container label {
+            cursor: pointer;
+            color: var(--dark);
+            font-weight: 500;
         }
 
         .btn {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
             background-color: var(--primary);
             color: white;
             border: none;
             border-radius: var(--border-radius);
             font-size: 1rem;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 2rem;
+            transition: var(--transition);
         }
 
         .btn:hover {
             background-color: var(--primary-dark);
             transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
 
         .total-section {
@@ -106,27 +178,65 @@
             justify-content: space-between;
             align-items: center;
             margin-top: 2rem;
-            padding-top: 1rem;
-            border-top: 1px solid #e0e0e0;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--gray-light);
         }
 
         .total-amount {
-            font-size: 1.25rem;
-            font-weight: 600;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .selected-count {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
         }
 
         .note {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: var(--gray);
-            margin-top: 0.5rem;
-            font-style: italic;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background-color: rgba(79, 70, 229, 0.05);
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--primary);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .badge-primary {
+            background-color: #EEF2FF;
+            color: var(--primary);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Select Bills to Pay</h1>
-        <p class="note">Your new invoice is automatically selected. You may also select additional sample invoices below.</p>
+        <header class="page-header">
+        <div class="page-header-content">
+            <div class="logo">
+                
+                <h1 class="page-title">🌐 China Payment Gateway</h1>
+            </div>
+            <div style="color: rgba(255,255,255,0.8);">Secure Payment Processing</div>
+        </div>
+    </header>
+
+        <h1 class="page-title">
+            <i class="fas fa-file-invoice-dollar"></i>
+            Select Bills to Pay
+        </h1>
+        
+        
         
         <div class="invoice-list">
             <!-- Latest Invoice (just created) -->
@@ -139,7 +249,7 @@
                     <div class="invoice-description">{{ latest_invoice.description }}</div>
                     <div class="invoice-amount">${{ "%.2f"|format(latest_invoice.amount) }}</div>
                 </div>
-                <div class="vendor-id">Vendor: {{ latest_invoice.vendor_id }}</div>
+                <div class="vendor-id"><i class="fas fa-user-tie"></i> Vendor: {{ latest_invoice.vendor_id }}</div>
                 <div class="checkbox-container">
                     <input type="checkbox" id="invoice-{{ latest_invoice.invoice_id }}" checked>
                     <label for="invoice-{{ latest_invoice.invoice_id }}">Pay this invoice</label>
@@ -157,7 +267,7 @@
                     <div class="invoice-description">{{ invoice.description }}</div>
                     <div class="invoice-amount">${{ "%.2f"|format(invoice.amount) }}</div>
                 </div>
-                <div class="vendor-id">Vendor: {{ latest_invoice.vendor_id }}</div>
+                <div class="vendor-id"><i class="fas fa-user-tie"></i> Vendor: {{ latest_invoice.vendor_id }}</div>
                 <div class="checkbox-container">
                     <input type="checkbox" id="invoice-{{ invoice.invoice_id }}">
                     <label for="invoice-{{ invoice.invoice_id }}">Pay this invoice</label>
@@ -175,7 +285,9 @@
                     <span id="selected-count">1</span> invoice(s) selected
                 </div>
             </div>
-            <button id="pay-selected" class="btn">Proceed to Payment</button>
+            <button id="pay-selected" class="btn">
+                <i class="fas fa-credit-card"></i> Proceed to Payment
+            </button>
         </div>
     </div>
 
@@ -225,30 +337,28 @@
 
             // Handle payment
             payButton.addEventListener('click', async () => {
-    const paymentData = {
-        invoices: selectedInvoices,
-        totalAmount: totalAmount
-    };
+                const paymentData = {
+                    invoices: selectedInvoices,
+                    totalAmount: totalAmount
+                };
 
-    const response = await fetch('/process_payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(paymentData)
-    });
-    
-    if (response.ok) {
-        // For HTML responses, replace the current page
-        document.open();
-        document.write(await response.text());
-        document.close();
-    } else {
-        const error = await response.json();
-        alert(`Error: ${error.message}`);
-    }
-});
+                const response = await fetch('/process_payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(paymentData)
+                });
+                
+                if (response.ok) {
+                    // For HTML responses, replace the current page
+                    document.open();
+                    document.write(await response.text());
+                    document.close();
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.message}`);
+                }
+            });
         });
-
-    
     </script>
 </body>
 </html>

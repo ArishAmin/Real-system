@@ -5,18 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Premium Invoice Generator</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #4361ee;
-            --primary-dark: #3a56d4;
-            --secondary: #3f37c9;
-            --dark: #1a1a2e;
-            --light: #f8f9fa;
-            --gray: #6c757d;
-            --success: #4cc9f0;
-            --border-radius: 8px;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --primary: #4F46E5;
+            --primary-dark: #4338CA;
+            --secondary: #10B981;
+            --dark: #111827;
+            --light: #F9FAFB;
+            --gray: #6B7280;
+            --success: #10B981;
+            --error: #EF4444;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .page-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 2rem;
+        }
+
+        .page-header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
 
         * {
@@ -27,7 +55,7 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f5f7fb;
+            background-color: #F3F4F6;
             color: var(--dark);
             line-height: 1.6;
         }
@@ -42,69 +70,99 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 3rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #E5E7EB;
         }
 
         .logo {
-            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.75rem;
             font-weight: 700;
             color: var(--primary);
+        }
+
+        .logo-emoji {
+            font-size: 1.5rem;
+        }
+
+        .tagline {
+            color: var(--gray);
+            font-weight: 500;
         }
 
         .card {
             background: white;
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
-            padding: 2rem;
+            padding: 2.5rem;
             margin-bottom: 2rem;
+            transition: var(--transition);
+            border: 1px solid #E5E7EB;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
         }
 
         .card-title {
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             font-weight: 600;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-title i {
+            color: var(--primary);
         }
 
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.75rem;
         }
 
         label {
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
             font-weight: 500;
             color: var(--gray);
         }
 
         select, input {
             width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid #e0e0e0;
+            padding: 1rem 1.25rem;
+            border: 1px solid #E5E7EB;
             border-radius: var(--border-radius);
             font-size: 1rem;
-            transition: all 0.3s ease;
+            transition: var(--transition);
+            background-color: white;
+            color: var(--dark);
         }
 
         select:focus, input:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
         }
 
         .btn {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
             background-color: var(--primary);
             color: white;
             border: none;
             border-radius: var(--border-radius);
             font-size: 1rem;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: var(--transition);
         }
 
         .btn:hover {
@@ -114,7 +172,7 @@
         }
 
         .btn-block {
-            display: block;
+            display: flex;
             width: 100%;
         }
 
@@ -122,51 +180,74 @@
             background-color: transparent;
             color: var(--primary);
             border: 1px solid var(--primary);
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1.5rem;
             margin-left: 1rem;
         }
 
         .btn-edit:hover {
-            background-color: rgba(67, 97, 238, 0.1);
+            background-color: rgba(79, 70, 229, 0.1);
         }
 
-        .invoice-container {
-            margin-top: 2rem;
-        }
+        .invoice-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1;
+}
 
-        .invoice-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-        }
+.invoice-id-container,
+.invoice-date-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
 
-        .invoice-id {
-            font-weight: 600;
-            color: var(--primary);
-        }
+.invoice-id-container .badge {
+    flex-shrink: 0;
+}
 
-        .invoice-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 1.5rem;
-        }
+.invoice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 1.5rem;
+}
 
-        .invoice-table th {
-            text-align: left;
-            padding: 0.75rem 1rem;
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #e0e0e0;
-            font-weight: 600;
-        }
+.invoice-actions {
+    display: flex;
+    gap: 0.75rem;
+}
 
-        .invoice-table td {
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid #e0e0e0;
-        }
+.invoice-content {
+    background-color: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    border: 1px solid var(--gray-light);
+}
 
-        .invoice-table tr:last-child td {
-            border-bottom: none;
-        }
+.invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.invoice-table th {
+    text-align: left;
+    padding: 1rem;
+    background-color: #F9FAFB;
+    border-bottom: 1px solid var(--gray-light);
+    font-weight: 600;
+    color: var(--gray);
+}
+
+.invoice-table td {
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid var(--gray-light);
+}
+
+.invoice-table tr:last-child td {
+    border-bottom: none;
+}
 
         .text-right {
             text-align: right;
@@ -174,13 +255,14 @@
 
         .total-row {
             font-weight: 600;
-            background-color: #f8f9fa;
+            background-color: #F9FAFB;
         }
 
         .vendor-id-container {
             display: flex;
             align-items: center;
-            margin-bottom: 1.5rem;
+            gap: 1rem;
+            margin-bottom: 1.75rem;
         }
 
         .vendor-id-container input {
@@ -192,55 +274,86 @@
         }
 
         .status-message {
-            padding: 1rem;
+            padding: 1.25rem;
             border-radius: var(--border-radius);
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
         }
 
         .success {
-            background-color: rgba(76, 201, 240, 0.2);
-            color: #0a6c74;
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #065F46;
+            border: 1px solid #A7F3D0;
         }
 
         .error {
-            background-color: rgba(220, 53, 69, 0.2);
-            color: #842029;
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #991B1B;
+            border: 1px solid #FECACA;
         }
 
         .readonly-field {
-            background-color: #f8f9fa;
-            border: 1px solid #e0e0e0;
-            padding: 0.75rem 1rem;
-            border-radius: var(--border-radius);
-            margin-bottom: 0.5rem;
+    background-color: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    padding: 0.875rem 1.25rem;
+    border-radius: var(--border-radius);
+    min-width: 200px;
+}
+
+.editable-field {
+    display: none;
+    width: 100%;
+    padding: 0.875rem 1.25rem;
+    border: 1px solid #E5E7EB;
+    border-radius: var(--border-radius);
+}
+
+.editing .readonly-field {
+    display: none;
+}
+
+.editing .editable-field {
+    display: block;
+}
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
         }
 
-        .editable-field {
-            display: none;
-            width: 100%;
-        }
-
-        .editing .readonly-field {
-            display: none;
-        }
-
-        .editing .editable-field {
-            display: block;
+        .badge-primary {
+            background-color: #EEF2FF;
+            color: var(--primary);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <div class="logo">InvoicePro</div>
-            <div class="tagline">Premium Invoice Generation</div>
-        </header>
+        <header class="page-header">
+        <div class="page-header-content">
+            <div>
+                
+                <h1 class="page-title">📊 Partner Page</h1>
+            </div>
+            
+        </div>
+    </header>
 
         <div class="card">
-            <h2 class="card-title">Vendor Information</h2>
+            <h2 class="card-title">
+                <i class="fas fa-user-tie"></i>
+                Vendor Information
+            </h2>
             <div class="form-group">
-                <label for="country">Country</label>
+                <label for="country"><i class="fas fa-globe"></i> Country</label>
                 <select id="country" name="country">
                     <option value="">Select a country</option>
                     {% for country in countries %}
@@ -251,59 +364,79 @@
 
             <div id="vendor-section" class="hidden">
                 <div class="form-group">
-                    <label>Vendor ID</label>
+                    <label><i class="fas fa-id-card"></i> Vendor ID</label>
                     <div class="vendor-id-container">
                         <div class="readonly-field" id="vendor-id-display"></div>
                         <input type="text" id="vendor-id-input" class="editable-field">
-                        <button id="edit-vendor-id" class="btn-edit">Edit</button>
-                        <button id="save-vendor-id" class="btn-edit hidden">Save</button>
+                        <button id="edit-vendor-id" class="btn btn-edit">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button id="save-vendor-id" class="btn btn-edit hidden">
+                            <i class="fas fa-save"></i> Save
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
         <div id="invoice-section" class="card hidden">
-            <h2 class="card-title">Invoice Details</h2>
+            <h2 class="card-title">
+                <i class="fas fa-file-invoice-dollar"></i>
+                Invoice Details
+            </h2>
             
             <div class="invoice-container">
-                <div class="invoice-header">
-                    <div>
-                        <div class="invoice-id">Invoice #<span id="invoice-id-display" class="readonly-field"></span>
-                            <input type="text" id="invoice-id-input" class="editable-field">
-                        </div>
-                        <div>Date: <span id="invoice-date-display" class="readonly-field"></span>
-                            <input type="date" id="invoice-date-input" class="editable-field">
-                        </div>
-                    </div>
-                    <button id="edit-invoice-btn" class="btn-edit">Edit Invoice</button>
-                    <button id="save-invoice-btn" class="btn-edit hidden">Save Changes</button>
-                </div>
-
-                <table class="invoice-table">
-                    <thead>
-                        <tr>
-                            <th>Description</th>
-                            <th class="text-right">Amount (USD)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <div id="invoice-description-display" class="readonly-field"></div>
-                                <input type="text" id="invoice-description-input" class="editable-field">
-                            </td>
-                            <td>
-                                <div id="invoice-amount-display" class="readonly-field text-right"></div>
-                                <input type="number" id="invoice-amount-input" class="editable-field text-right" step="0.01" min="0">
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+    <div class="invoice-header">
+        <div class="invoice-meta">
+            <div class="invoice-id-container">
+                <span class="badge badge-primary">INVOICE</span>
+                <div class="readonly-field" id="invoice-id-display"></div>
+                <input type="text" id="invoice-id-input" class="editable-field">
             </div>
+            <div class="invoice-date-container">
+                <div class="readonly-field" id="invoice-date-display"></div>
+                <input type="date" id="invoice-date-input" class="editable-field">
+            </div>
+        </div>
+        <div class="invoice-actions">
+            <button id="edit-invoice-btn" class="btn btn-edit">
+                <i class="fas fa-edit"></i> Edit Invoice
+            </button>
+            <button id="save-invoice-btn" class="btn btn-edit hidden">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+
+    <div class="invoice-content">
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th class="text-right">Amount (USD)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div id="invoice-description-display" class="readonly-field"></div>
+                        <input type="text" id="invoice-description-input" class="editable-field">
+                    </td>
+                    <td>
+                        <div id="invoice-amount-display" class="readonly-field text-right"></div>
+                        <input type="number" id="invoice-amount-input" class="editable-field text-right" step="0.01" min="0">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
             <div id="status-message" class="status-message hidden"></div>
 
-            <button id="proceed-btn" class="btn btn-block">Save Invoice</button>
+            <button id="proceed-btn" class="btn btn-block">
+                <i class="fas fa-save"></i> Save Invoice
+            </button>
         </div>
     </div>
 
@@ -460,7 +593,8 @@
 
             // Show status message
             function showStatus(message, type) {
-                statusMessage.textContent = message;
+                const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+                statusMessage.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
                 statusMessage.className = `status-message ${type}`;
                 statusMessage.classList.remove('hidden');
             }

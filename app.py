@@ -13,7 +13,7 @@ WORLDPAY_USERNAME = os.getenv('WORLDPAY_USERNAME')
 WORLDPAY_PASSWORD = os.getenv('WORLDPAY_PASSWORD')
 # Supabase configuration
 SUPABASE_URL = "https://tddovxrnfnrdvrludfwb.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkZG92eHJuZm5yZHZybHVkZndiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyOTUwMTgsImV4cCI6MjA2OTg3MTAxOH0.iTug0w1UXP9gRWIyhhYQrudt-UAASXAvWtvXfhe_oqI"
+SUPABASE_KEY ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkZG92eHJuZm5yZHZybHVkZndiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyOTUwMTgsImV4cCI6MjA2OTg3MTAxOH0.iTug0w1UXP9gRWIyhhYQrudt-UAASXAvWtvXfhe_oqI"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Country data
@@ -206,6 +206,125 @@ def process_payment():
             'message': 'Payment processing failed'
         }), 500
 
+@app.route('/process_card', methods=['POST'])
+def process_card():
+    """Process card payments with country-specific configurations"""
+    try:
+        # 1. Get country from session and validate
+        country = session.get('country')  
+        if country not in ['China']:
+            return jsonify({
+                'status': 'error',
+                'message': f'Unsupported country: {country}'
+            }), 400
+
+        # 2. Get card data from frontend
+        card_data = request.get_json()
+        if not all(key in card_data for key in ['cardNumber', 'expiryMonth', 
+                                              'expiryYear', 'cvc', 'cardHolderName']):
+            return jsonify({
+                'status': 'error',
+                'message': 'Missing required card fields'
+            }), 400
+
+        # 3. Country-specific configuration
+        COUNTRY_CONFIG = {
+            'China': {
+                'currency': 'CNY',
+                'exchange_rate': 7.18,
+                'billing_address': {
+                    'address1': '123 Beijing Road',
+                    'address2': '456 beijing street',
+                    'address3': '789 Beijing Lane',
+                    'city': 'Shanghai',
+                    'postalCode': '200000',
+                    'countryCode': 'CN'
+                }
+            },
+        }
+
+        config = COUNTRY_CONFIG[country]
+        
+        # 4. Calculate amount in local currency
+        usd_amount = float(session.get('total_amount', 0))
+        local_amount = int(usd_amount * config['exchange_rate'] * 100)  # in cents
+
+        # 5. Build payload with country-specific details
+        payload = {
+            "transactionReference": f"CARD-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            "merchant": {"entity": "default"},
+            "instruction": {
+                "method": "card",
+                "paymentInstrument": {
+                    "type": "plain",
+                    "cardHolderName": card_data['cardHolderName'],
+                    "cardNumber": card_data['cardNumber'].replace(" ", ""),
+                    "expiryDate": {
+                        "month": int(card_data['expiryMonth']),
+                        "year": int(card_data['expiryYear']) if len(card_data['expiryYear']) == 4 
+                               else int(f"20{card_data['expiryYear']}")
+                    },
+                    "billingAddress": {
+                        **config['billing_address'],
+                    },
+                    "cvc": card_data['cvc']
+                },
+                "narrative": {"line1": "Bill Payment"},
+                "value": {
+                    "currency": config['currency'],
+                    "amount": local_amount
+                }
+            }
+        }
+
+        # 6. Make API call to Worldpay
+        headers = {
+            "Content-Type": "application/json",
+            "WP-Api-Version": "2024-06-01"
+        }
+
+        response = requests.post(
+            "https://try.access.worldpay.com/api/payments",
+            json=payload,
+            headers=headers,
+            auth=(WORLDPAY_USERNAME, WORLDPAY_PASSWORD),
+            timeout=30
+        )
+        # 7. Handle response
+        if response.status_code == 201:
+            data = response.json()
+            payment_url = data["_links"]["self"]["href"]
+            payment_id = payment_url.split("/payments/")[1].split("/")[0]
+            session.update({
+                'payment_id': payment_id,
+                'transaction_ref': payload['transactionReference'],
+                'paid_amount': local_amount / 100,
+                'paid_currency': config['currency'],
+                'payment_method': 'card',
+                'card_last4': payload['instruction']['paymentInstrument']['cardNumber'][-4:]
+            })
+            
+            return jsonify({
+                'status': 'success',
+                'message': 'Payment processed',
+                'receipt_url': url_for('payment_success', _external=True),
+                'transaction_id': payload['transactionReference']
+            })
+
+        return jsonify({
+            'status': 'error',
+            'message': 'Payment failed',
+            'response': response.json(),
+            'status_code': response.status_code
+        }), 400
+
+    except Exception as e:
+        app.logger.error(f'Card processing error: {str(e)}', exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': 'Internal server error'
+        }), 500
+    
 @app.route('/process_alipay', methods=['POST'])
 def process_alipay():
     """Dedicated Alipay processor with country flexibility"""
@@ -215,9 +334,7 @@ def process_alipay():
         
         # 2. Country validation and config
         COUNTRY_SETTINGS = {
-            'China': {'currency': 'CNY', 'gateway': 'alipay_cn', 'language': 'zh'},
-            'SG': {'currency': 'SGD', 'gateway': 'alipay_cn', 'language': 'en'},
-            'MY': {'currency': 'MYR', 'gateway': 'alipay_cn', 'language': 'en'}
+            'China': {'currency': 'CNY','language': 'zh'},
         }
         
         if country not in COUNTRY_SETTINGS:
@@ -232,7 +349,7 @@ def process_alipay():
         # Calculate total_local using session's total_amount and a default exchange rate (set to 1 if not present)
         total_amount = session.get('total_amount', 0)
         # You may want to define exchange rates for each country; here we use 1 as a fallback
-        exchange_rates = {'China': 7.18, 'SG': 1.36, 'MY': 4.7}
+        exchange_rates = {'China': 7.18}
         exchange_rate = exchange_rates.get(country, 1)
         total_local = float(total_amount) * exchange_rate
 
@@ -307,6 +424,101 @@ def process_alipay():
     except Exception:
         return jsonify({'status': 'error', 'message': 'Processing failed'}), 500
 
+@app.route('/process_wechatpay', methods=['POST'])
+def process_wechatpay():
+    """Process card payments with country-specific configurations"""
+    try:
+        # 1. Get country from session and validate
+        country = session.get('country')  
+        if country not in ['China']:
+            return jsonify({
+                'status': 'error',
+                'message': f'Unsupported country: {country}'
+            }), 400
+
+        # 3. Country-specific configuration
+        COUNTRY_CONFIG = {
+            'China': {
+                'currency': 'CNY',
+                'exchange_rate': 7.18,
+            },
+        }
+
+        config = COUNTRY_CONFIG[country]
+        
+        # 4. Calculate amount in local currency
+        usd_amount = float(session.get('total_amount', 0))
+        local_amount = int(usd_amount * config['exchange_rate'] * 100)  # in cents
+
+        # 5. Build payload with country-specific details
+        payload = {
+            "transactionReference": f"WECHAT-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            "merchant": {
+                "entity": "default",  
+            },
+            "instruction": {
+                "method": "wechatpay",  
+                "expiryIn": 15,  
+                "value": {
+                    "amount": local_amount,
+                    "currency": config['currency']  
+                },
+                "narrative": {
+                    "line1": "APG Payment"  
+                },
+                "paymentInstrument": {
+                    "type": "direct" 
+                },
+            }
+        }
+
+        # 6. Make API call to Worldpay
+        headers = {
+            "Content-Type": "application/json",
+            "WP-Api-Version": "2024-07-01"
+        }
+
+        response = requests.post(
+            "https://try.access.worldpay.com/apmPayments",
+            json=payload,
+            headers=headers,
+            auth=(WORLDPAY_USERNAME, WORLDPAY_PASSWORD),
+            timeout=30
+        )
+        # 7. Handle response
+        if response.status_code == 201:
+            data = response.json()
+            session.update({
+                'payment_id': data.get('paymentId'),
+                'transaction_ref': payload['transactionReference'],
+                'paid_amount': local_amount / 100,
+                'paid_currency': config['currency'],
+                'payment_method': 'card',
+                
+            })
+            
+            return jsonify({
+                'status': 'success',
+                'qrcode': data.get('redirect'),
+                'message': 'Payment processed',
+                'receipt_url': url_for('payment_success', _external=True),
+                'transaction_id': payload['transactionReference']
+            })
+
+        return jsonify({
+            'status': 'error',
+            'message': 'Payment failed',
+            'response': response.json(),
+            'status_code': response.status_code
+        }), 400
+
+    except Exception as e:
+        app.logger.error(f'Card processing error: {str(e)}', exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': 'Internal server error'
+        }), 500
+    
 @app.route('/success')
 def payment_success():
     """Unified success page for all payment methods"""
