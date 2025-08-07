@@ -18,22 +18,17 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Country data
 COUNTRIES = [
+    {"name": "China", "code": "CN"},
     {"name": "United States", "code": "US"},
-    {"name": "Canada", "code": "CA"},
-    {"name": "United Kingdom", "code": "GB"},
     {"name": "Germany", "code": "DE"},
     {"name": "France", "code": "FR"},
     {"name": "Japan", "code": "JP"},
-    {"name": "Australia", "code": "AU"},
+    {"name": "United Kingdom", "code": "UK"},
     {"name": "India", "code": "IN"},
-    {"name": "China", "code": "CN"},
-    {"name": "Singapore", "code": "SG"},
-    {"name": "Malaysia", "code": "MY"},
-    {"name": "Brazil", "code": "BR"},
-    {"name": "South Africa", "code": "ZA"},
-    {"name": "Mexico", "code": "MX"},
+    {"name": "Malaysia",    "code": "MY"},
+    {"name": "Belgium", "code": "BE"},
     {"name": "Italy", "code": "IT"},
-    {"name": "Spain", "code": "ES"}
+    
 ]
 
 # Sample invoice descriptions
