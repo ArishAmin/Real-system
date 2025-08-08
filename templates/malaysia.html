@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>China Payment Gateway</title>
+    <title>Malaysia</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -287,20 +287,20 @@
                     </div>
                     <div class="summary-item">
                         <div class="summary-label">Exchange Rate</div>
-                        <div class="summary-value">1 USD = {{ exchange_rate }} CNY</div>
+                        <div class="summary-value">1 USD = {{ exchange_rate }} MYR</div>
                     </div>
                     <div class="summary-item">
                         <div class="summary-label">Service Fee (6%)</div>
                         <div class="summary-value">${{ "%.2f"|format(total_usd * 0.06) }}</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-label">Total CNY Amount</div>
-                        <div class="summary-value">¥{{ "%.2f"|format(total_local * 1.06) }}</div>
+                        <div class="summary-label">Total MYR Amount</div>
+                        <div class="summary-value">RM {{ "%.2f"|format(total_local * 1.06) }}</div>
                     </div>
                 </div>
                 
                 <div class="total-amount">
-                    Total Due: ¥{{ "%.2f"|format(total_local * 1.06) }}
+                    Total Due: RM {{ "%.2f"|format(total_local * 1.06) }}
                 </div>
             </div>
 
@@ -377,7 +377,7 @@
             <div class="form-group">
                 <label>Cardholder Name</label>
                 <input type="text" id="cardholder-name" class="form-control" 
-                       value="Zhang Wei" placeholder="As shown on card">
+                       value="Rahul Jaiker" placeholder="As shown on card">
             </div>
             
             <div id="card-error-msg" class="error-message" style="color: #dc3545; margin-bottom: 1rem;"></div>
@@ -385,7 +385,7 @@
             <button type="submit" id="card-pay-button" class="payment-btn btn-card">
                 
                 <span id="card-pay-text">
-                    <i class="fas fa-lock"></i> Pay ¥{{ "%.2f"|format(total_local * 1.06) }}
+                    <i class="fas fa-lock"></i> Pay RM {{ "%.2f"|format(total_local * 1.06) }}
                 </span>
                 <i id="card-loading-spinner" class="fas fa-spinner fa-spin hidden"></i>
             </button>
@@ -393,42 +393,18 @@
     </div>
 </div>
                 
-                <!-- Alipay Method -->
-                <div class="payment-method" id="alipay-method">
+                <!-- Paypal Method -->
+                <div class="payment-method" id="paypal-method">
                     <div class="payment-method-header">
-                        <span><i class="fab fa-alipay"></i> Alipay</span>
+                        <span><i class="fab fa-paypal"></i> Paypal</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="payment-method-content">
-                        <p style="margin-bottom: 1.5rem; color: var(--gray);">You will be redirected to Alipay to complete your payment of ¥{{ "%.2f"|format(total_local * 1.06) }}</p>
-                        <button class="payment-btn btn-alipay" id="alipay-btn">
-                            <i class="fab fa-alipay"></i> Pay with Alipay
+                        <p style="margin-bottom: 1.5rem; color: var(--gray);">You will be redirected to Paypal to complete your payment of RM {{ "%.2f"|format(total_local * 1.06) }}</p>
+                        <button class="payment-btn btn-alipay" id="paypal-btn">
+                            <i class="fab fa-alipay"></i> Pay with Paypal
                         </button>
                     </div>
-                </div>
-                
-                <!-- WeChat Pay Method -->
-                <div class="payment-method" id="wechat-method">
-                    <div class="payment-method-header">
-                        <span><i class="fab fa-weixin"></i> WeChat Pay</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="payment-method-content">
-    <!-- Original instructional text -->
-    <p id="wechat-message" style="margin-bottom: 1.5rem; color: var(--gray);">
-        QR-Code will be displayed to complete your payment of ¥{{ "%.2f"|format(total_local * 1.06) }}
-    </p>
-
-    <!-- Button to trigger QR code generation -->
-    <button class="payment-btn btn-wechat" id="wechat-btn">
-        <i class="fab fa-weixin"></i> Pay with WeChat
-    </button>
-
-    <!-- QR Code image container (initially hidden) -->
-    <div id="wechat-qr-container" style="margin-top: 1.5rem; display: none; text-align: center;">
-        <img id="wechat-qr" alt="WeChat QR Code" style="width: 250px; height: 250px;" />
-    </div>
-</div>
                 </div>
             </div>
         </div>
@@ -530,17 +506,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-    // Alipay Payment Processing
-    document.getElementById('alipay-btn').addEventListener('click', async function() {
+    // paypal Payment Processing
+    document.getElementById('paypal-btn').addEventListener('click', async function() {
         try {
-            const response = await fetch('/process_alipay', {
+            const response = await fetch('/process_paypal', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     amount: {{ total_local * 1.06 }},
-                    currency: 'CNY'
+                    currency: 'USD'
                 })
             });
             
@@ -557,40 +533,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // WeChat Pay Payment Processing
-    document.getElementById('wechat-btn').addEventListener('click', async function () {
-    try {
-        const response = await fetch('/process_wechatpay', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                amount: {{ total_local * 1.06 }},
-                currency: 'CNY'
-            })
-        });
-
-        const result = await response.json();
-
-        // Check if QR code was received
-        if (result.status === 'success' && result.qrcode) {
-            // Display QR image in <img>
-            const qrImg = document.getElementById('wechat-qr');
-            qrImg.src = "data:image/png;base64," + result.qrcode;
-            qrImg.style.display = 'block';
-
-            document.getElementById('wechat-qr-container').style.display = 'block'
-            document.getElementById('wechat-btn').style.display = 'none';
-            document.getElementById('wechat-message').textContent = 'Scan the QR code below with WeChat to complete your payment.';
-        } else {
-            alert('Payment failed: ' + (result.message || 'Unknown error'));
-        }
-    } catch (error) {
-        console.error('Payment error:', error);
-        alert('Payment processing error');
-    }
-});
 });
 </script>
 </body>

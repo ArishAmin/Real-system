@@ -25,7 +25,7 @@ COUNTRIES = [
     {"name": "Japan", "code": "JP"},
     {"name": "United Kingdom", "code": "UK"},
     {"name": "India", "code": "IN"},
-    {"name": "Malaysia",    "code": "MY"},
+    {"name": "Malaysia","code": "MY"},
     {"name": "Belgium", "code": "BE"},
     {"name": "Italy", "code": "IT"},
     
@@ -83,7 +83,7 @@ def generate_random_invoices(count):
             "date": random_date,
             "description": random.choice(descriptions),
             "amount": round(random.uniform(50, 2000), 2),
-            "vendor_id": random.choice(vendors)
+            
         })
     
     return invoices
@@ -148,43 +148,29 @@ def process_payment():
         
         # Define country-specific templates and settings
         COUNTRY_SETTINGS = {
-            'China': {
-                'template': 'china.html',
-                'currency': 'CNY',
-                'exchange_rate': 7.18,
-                
-            },
-            'IN': {
-                'template': 'india.html',
-                'currency': 'INR',
-                'exchange_rate': 83.5,
-                
-            },
-            'US': {
-                'template': 'united_states.html',
-                'currency': 'USD',
-                'exchange_rate': 1,
-                
-            }
-            
+            'China': {'template': 'china.html',
+                      'exchange_rate': 7.18},
+            'India': {'template': 'india.html',
+                      'exchange_rate': 83.5},
+            'United States': {'template': 'united_states.html',
+                              'exchange_rate': 1}, 
+            'Malaysia': {'template': 'malaysia.html',
+                         'exchange_rate': 4.5},
         }
         
         # Get country settings or use defaults
         settings = COUNTRY_SETTINGS.get(country)
-        
-        # Calculate converted amount
-        converted_amount = session['total_amount'] * settings['exchange_rate']
+        total_local= session['total_amount'] * settings['exchange_rate'] if settings else session['total_amount']
         
         # Render the appropriate template directly
         return render_template(
             settings['template'],
             country=session.get('country_name', ''),
             country_code=country,
-            total_usd=session['total_amount'],
-            total_local=round(converted_amount, 2),
-            currency=settings['currency'],
             exchange_rate=settings['exchange_rate'],
-            exchange_date=datetime.now().strftime('%Y-%m-%d')
+            total_local=total_local,
+            date=datetime.now().strftime('%Y-%m-%d'),
+            total_usd=session['total_amount'],
         )
         
     except Exception as e:
@@ -200,7 +186,7 @@ def process_card():
     try:
         # 1. Get country from session and validate
         country = session.get('country')  
-        if country not in ['China','United States', 'India']:
+        if country not in ['China','United States', 'India','Malaysia']:
             return jsonify({
                 'status': 'error',
                 'message': f'Unsupported country: {country}'
@@ -251,6 +237,18 @@ def process_card():
                     'city': 'Bangalore',
                     'postalCode': '560001',
                     'countryCode': 'IN'
+                }
+            },
+            'Malaysia': {
+                'currency': 'MYR',
+                'exchange_rate': 4.5,
+                'billing_address': {
+                    'address1': '123 Jalan Bukit Bintang',
+                    'address2': '456 Jalan Sultan Ismail',
+                    'address3': '789 Jalan Pudu',
+                    'city': 'Kuala Lumpur',
+                    'postalCode': '55100',
+                    'countryCode': 'MY'
                 }
             }
         }
@@ -362,7 +360,7 @@ def process_alipay():
         # You may want to define exchange rates for each country; here we use 1 as a fallback
         exchange_rates = {'China': 7.18}
         exchange_rate = exchange_rates.get(country, 1)
-        total_local = float(total_amount) * exchange_rate
+        local_amount = float(total_amount) * exchange_rate
 
         # 3. Build fixed Alipay payload (structure never changes)
         payload = {
@@ -373,7 +371,7 @@ def process_alipay():
             "instruction": {
                 "method": "alipay_cn",
                 "value": {
-                    "amount": int(float(total_local) * 100),  # cents
+                    "amount": int(float(local_amount) * 100),  # cents
                     "currency": config['currency']
                 },
                 "narrative": {
@@ -441,7 +439,7 @@ def process_wechatpay():
     try:
         # 1. Get country from session and validate
         country = session.get('country')  
-        if country not in ['China']:
+        if country not in ['China','United States']:
             return jsonify({
                 'status': 'error',
                 'message': f'Unsupported country: {country}'
@@ -453,6 +451,10 @@ def process_wechatpay():
                 'currency': 'CNY',
                 'exchange_rate': 7.18,
             },
+            'United States': {
+                'currency': 'USD',
+                'exchange_rate': 1,
+            }
         }
 
         config = COUNTRY_CONFIG[country]
@@ -536,37 +538,113 @@ def process_paypal():
         
         country = session.get('country') 
         
-        # 2. Country validation and config
-        COUNTRY_SETTINGS = {
-            'China': {'currency': 'CNY','language': 'zh'},
+        COUNTRY_CONFIG = {
+            'United States': {
+                'currency': 'USD',
+                'exchange_rate': 1,
+                'billing_address': {
+                    'address1': '123 Main St',
+                    'address2': '456 Elm St',
+                    'address3': '789 Oak St',
+                    'postalCode': '10001',
+                    'city': 'New York',
+                    'state': 'NY',
+                    'countryCode': 'US'
+                },
+                "shipping": {
+                    "firstName": "James",
+                    "lastName": "Moriarty",
+                    "address": {
+                        "address1": "The Palatine Centre",
+                        "postalCode": "DH1 3LE",
+                        "city": "Durham",
+                        "state": "NY",
+                        "countryCode": "US"
+                    }
+                },
+                "customer": {
+                    "email":"hannamontana@gmail.com" 
+                },
+            },
+            'India': {
+                'currency': 'INR',
+                'exchange_rate': 83.5,
+                'billing_address': {
+                    'address1': '123 MG Road',
+                    'address2': '456 Brigade Road',
+                    'address3': '789 Church Street',
+                    'postalCode': '560001',
+                    'city': 'Bangalore',
+                    'state': 'KA',
+                    'countryCode': 'IN'
+                },
+                "shipping": {
+                    "firstName": "James",
+                    "lastName": "Moriarty",
+                    "address": {
+                        "address1": "The Palatine Centre",
+                        "postalCode": "DH1 3LE",
+                        "city": "Durham",
+                        "state": "KA",
+                        "countryCode": "IN"
+                    }
+                },
+                "customer": {
+                    "email":"asdasd@gmail.com"
+                }
+            },
+            'Malaysia': {
+                'currency': 'MYR',
+                'exchange_rate': 4.5,
+                'billing_address': {
+                    'address1': '123 Jalan Bukit Bintang',
+                    'address2': '456 Jalan Sultan Ismail',
+                    'address3': '789 Jalan Pudu',
+                    'postalCode': '55100',
+                    'city': 'Kuala Lumpur',
+                    'state': 'WP',
+                    'countryCode': 'MY'
+                },
+                "shipping": {
+                    "firstName": "James",
+                    "lastName": "Moriarty",
+                    "address": {
+                        "address1": "The Palatine Centre",
+                        "postalCode": "DH1 3LE",
+                        "city": "Durham",
+                        "state": "WP",
+                        "countryCode": "MY"
+                    }
+                },
+                "customer": {
+                    "email":"asdasd@gmail.com"
+                }
+            }
         }
         
-        if country not in COUNTRY_SETTINGS:
+        if country not in COUNTRY_CONFIG:
             return jsonify({
                 'status': 'error',
-                'message': f'Alipay not supported in {country}',
-                'supported_countries': list(COUNTRY_SETTINGS.keys())
+                'message': f'Paypal not supported in {country}',
+                'supported_countries': list(COUNTRY_CONFIG.keys())
             }), 400
 
-        config = COUNTRY_SETTINGS[country]
+        config = COUNTRY_CONFIG[country]
         
-        # Calculate total_local using session's total_amount and a default exchange rate (set to 1 if not present)
+        
         total_amount = session.get('total_amount', 0)
-        # You may want to define exchange rates for each country; here we use 1 as a fallback
-        exchange_rates = {'China': 7.18}
-        exchange_rate = exchange_rates.get(country, 1)
-        total_local = float(total_amount) * exchange_rate
+        local_amount = int(total_amount * config['exchange_rate']* 100)  # in cents
 
-        # 3. Build fixed Alipay payload (structure never changes)
+        
         payload = {
-            "transactionReference": f"ALP-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            "transactionReference": f"PYPL-{datetime.now().strftime('%Y%m%d%H%M%S')}",
             "merchant": {
                 "entity": "default",
             },
             "instruction": {
-                "method": "alipay_cn",
+                "method": "paypal",
                 "value": {
-                    "amount": int(float(total_local) * 100),  # cents
+                    "amount": local_amount,
                     "currency": config['currency']
                 },
                 "narrative": {
@@ -574,30 +652,33 @@ def process_paypal():
                 },
                 "paymentInstrument": {
                     "type": "direct",
-                    "language": config['language']
+                    "billingAddress": {
+                        **config['billing_address'],    
+                    }
+                },
+                "settlement": {
+                   "auto": True
                 },
                 "resultUrls": {
-                    "pending": url_for('bills', _external=True),
+                    "cancel": url_for('bills', _external=True),
                     "failure": url_for('bills', _external=True),
+                    "pending": url_for('bills', _external=True),
                     "success": url_for('payment_success', _external=True),
-                    "cancel": url_for('bills', _external=True)
+                    
                 },
-                "deviceData": {
-                    "device": "desktop",
-                    "operatingSystem": "windows"
-               },
+                "shipping": {
+                    **config['shipping'],
+                },
                 "customer": {
-                    "firstName": "Xhiao",
-                    "lastName": "Xubeg",
-                    "email": "xhiao@example.com"
-                }
+                    **config['customer'],
+                },
             }
         }
         headers = {
             "Content-Type": "application/json",
             "WP-Api-Version": "2024-07-01"
         }
-        # 4. Call Alipay API
+        # 4. Call Paypal API
         response = requests.post(
             "https://try.access.worldpay.com/apmPayments",
             json=payload,
@@ -605,6 +686,9 @@ def process_paypal():
             auth=(WORLDPAY_USERNAME, WORLDPAY_PASSWORD),
             timeout=30
         )
+        app.logger.debug(f"Worldpay response status: {response.status_code}")
+        app.logger.debug(f"Worldpay response headers: {dict(response.headers)}")
+        app.logger.debug(f"Worldpay full response: {response.text}")
         # 5. Handle response
         if response.status_code == 201:
             data = response.json()
@@ -621,7 +705,7 @@ def process_paypal():
 
         return jsonify({
             'status': 'error',
-            'message': 'Alipay API error',
+            'message': 'Paypal API error',
             'response': response.text
         }), 400
 
