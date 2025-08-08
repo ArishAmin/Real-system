@@ -73,8 +73,6 @@ def generate_random_invoices(count):
         "Database Administration"
     ]
     
-    vendors = ["VEN-US", "VEN-CA", "VEN-UK", "VEN-DE", "VEN-FR"]
-    
     invoices = []
     for _ in range(count):
         # Generate random date within last 30 days
@@ -163,21 +161,16 @@ def process_payment():
                 
             },
             'US': {
-                'template': 'default_payment.html',
+                'template': 'united_states.html',
                 'currency': 'USD',
                 'exchange_rate': 1,
                 
             }
-            # Add more countries as needed
+            
         }
         
         # Get country settings or use defaults
-        settings = COUNTRY_SETTINGS.get(country, {
-            'template': 'default_payment.html',
-            'currency': 'USD',
-            'exchange_rate': 1,
-            'payment_methods': ['credit_card']
-        })
+        settings = COUNTRY_SETTINGS.get(country)
         
         # Calculate converted amount
         converted_amount = session['total_amount'] * settings['exchange_rate']
@@ -207,7 +200,7 @@ def process_card():
     try:
         # 1. Get country from session and validate
         country = session.get('country')  
-        if country not in ['China']:
+        if country not in ['China','United States', 'India']:
             return jsonify({
                 'status': 'error',
                 'message': f'Unsupported country: {country}'
@@ -236,6 +229,30 @@ def process_card():
                     'countryCode': 'CN'
                 }
             },
+            'United States': {
+                'currency': 'USD',
+                'exchange_rate': 1,
+                'billing_address': {
+                    'address1': '123 Main St',
+                    'address2': '456 Elm St',
+                    'address3': '789 Oak St',
+                    'city': 'New York',
+                    'postalCode': '10001',
+                    'countryCode': 'US'
+                }
+            },
+            'India': {
+                'currency': 'INR',
+                'exchange_rate': 83.5,
+                'billing_address': {
+                    'address1': '123 MG Road',
+                    'address2': '456 Brigade Road',
+                    'address3': '789 Church Street',
+                    'city': 'Bangalore',
+                    'postalCode': '560001',
+                    'countryCode': 'IN'
+                }
+            }
         }
 
         config = COUNTRY_CONFIG[country]
@@ -322,10 +339,9 @@ def process_card():
     
 @app.route('/process_alipay', methods=['POST'])
 def process_alipay():
-    """Dedicated Alipay processor with country flexibility"""
     try:
-        # 1. Get country from session (set during invoice creation)
-        country = session.get('country', 'CN') # Default to China
+        
+        country = session.get('country') 
         
         # 2. Country validation and config
         COUNTRY_SETTINGS = {
@@ -513,6 +529,104 @@ def process_wechatpay():
             'status': 'error',
             'message': 'Internal server error'
         }), 500
+
+@app.route('/process_paypal', methods=['POST'])
+def process_paypal():
+    try:
+        
+        country = session.get('country') 
+        
+        # 2. Country validation and config
+        COUNTRY_SETTINGS = {
+            'China': {'currency': 'CNY','language': 'zh'},
+        }
+        
+        if country not in COUNTRY_SETTINGS:
+            return jsonify({
+                'status': 'error',
+                'message': f'Alipay not supported in {country}',
+                'supported_countries': list(COUNTRY_SETTINGS.keys())
+            }), 400
+
+        config = COUNTRY_SETTINGS[country]
+        
+        # Calculate total_local using session's total_amount and a default exchange rate (set to 1 if not present)
+        total_amount = session.get('total_amount', 0)
+        # You may want to define exchange rates for each country; here we use 1 as a fallback
+        exchange_rates = {'China': 7.18}
+        exchange_rate = exchange_rates.get(country, 1)
+        total_local = float(total_amount) * exchange_rate
+
+        # 3. Build fixed Alipay payload (structure never changes)
+        payload = {
+            "transactionReference": f"ALP-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            "merchant": {
+                "entity": "default",
+            },
+            "instruction": {
+                "method": "alipay_cn",
+                "value": {
+                    "amount": int(float(total_local) * 100),  # cents
+                    "currency": config['currency']
+                },
+                "narrative": {
+                    "line1": "MindPalace Service"
+                },
+                "paymentInstrument": {
+                    "type": "direct",
+                    "language": config['language']
+                },
+                "resultUrls": {
+                    "pending": url_for('bills', _external=True),
+                    "failure": url_for('bills', _external=True),
+                    "success": url_for('payment_success', _external=True),
+                    "cancel": url_for('bills', _external=True)
+                },
+                "deviceData": {
+                    "device": "desktop",
+                    "operatingSystem": "windows"
+               },
+                "customer": {
+                    "firstName": "Xhiao",
+                    "lastName": "Xubeg",
+                    "email": "xhiao@example.com"
+                }
+            }
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "WP-Api-Version": "2024-07-01"
+        }
+        # 4. Call Alipay API
+        response = requests.post(
+            "https://try.access.worldpay.com/apmPayments",
+            json=payload,
+            headers=headers,
+            auth=(WORLDPAY_USERNAME, WORLDPAY_PASSWORD),
+            timeout=30
+        )
+        # 5. Handle response
+        if response.status_code == 201:
+            data = response.json()
+            session.update({
+                'payment_id': data.get('paymentId'),
+                'transaction_ref': payload['transactionReference'],
+                'paid_amount': payload['instruction']['value']['amount'] / 100,
+                'paid_currency': config['currency']
+            })
+            return jsonify({
+                'status': 'success',
+                'redirect_url': data.get('redirect')
+            })
+
+        return jsonify({
+            'status': 'error',
+            'message': 'Alipay API error',
+            'response': response.text
+        }), 400
+
+    except Exception:
+        return jsonify({'status': 'error', 'message': 'Processing failed'}), 500
     
 @app.route('/success')
 def payment_success():
