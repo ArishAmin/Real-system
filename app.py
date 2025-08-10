@@ -156,6 +156,19 @@ def process_payment():
                               'exchange_rate': 1}, 
             'Malaysia': {'template': 'malaysia.html',
                          'exchange_rate': 4.5},
+            'Germany': {'template': 'germany.html',
+                        'exchange_rate': 0.85},
+            'France': {'template': 'france.html',
+                       'exchange_rate': 0.85},
+            'Italy': {'template': 'italy.html',
+                      'exchange_rate': 0.85},
+            'Belgium': {'template': 'belgium.html',
+                        'exchange_rate': 0.85},
+            'United Kingdom': {'template': 'united_kingdom.html',
+                               'exchange_rate': 0.75},
+            'Japan': {'template': 'japan.html',
+                      'exchange_rate': 110.0},
+
         }
         
         # Get country settings or use defaults
@@ -186,7 +199,7 @@ def process_card():
     try:
         # 1. Get country from session and validate
         country = session.get('country')  
-        if country not in ['China','United States', 'India','Malaysia']:
+        if country not in ['China','United States', 'India','Malaysia','Germany','France','Italy','Belgium','United Kingdom','Japan']:
             return jsonify({
                 'status': 'error',
                 'message': f'Unsupported country: {country}'
@@ -250,6 +263,78 @@ def process_card():
                     'postalCode': '55100',
                     'countryCode': 'MY'
                 }
+            },
+            'Germany': {
+                'currency': 'EUR',
+                'exchange_rate': 0.85,
+                'billing_address': {
+                    'address1': '123 Berlin Strasse',
+                    'address2': '456 Berlin Platz',
+                    'address3': '789 Berlin Weg',
+                    'city': 'Berlin',
+                    'postalCode': '10115',
+                    'countryCode': 'DE'
+                }
+            },
+            'France': {
+                'currency': 'EUR',
+                'exchange_rate': 0.85,
+                'billing_address': {
+                    'address1': '123 Rue de Paris',
+                    'address2': '456 Avenue de France',
+                    'address3': '789 Boulevard de Paris',
+                    'city': 'Paris',
+                    'postalCode': '75001',
+                    'countryCode': 'FR'
+                }
+            },
+            'Italy': {
+                'currency': 'EUR',
+                'exchange_rate': 0.85,
+                'billing_address': {
+                    'address1': '123 Via Roma',
+                    'address2': '456 Piazza Italia',
+                    'address3': '789 Corso Italia',
+                    'city': 'Rome',
+                    'postalCode': '00100',
+                    'countryCode': 'IT'
+                }
+            },
+            'Belgium': {
+                'currency': 'EUR',
+                'exchange_rate': 0.85,
+                'billing_address': {
+                    'address1': '123 Rue de Bruxelles',
+                    'address2': '456 Avenue de Belgique',
+                    'address3': '789 Boulevard de Bruxelles',
+                    'city': 'Brussels',
+                    'postalCode': '1000',
+                    'countryCode': 'BE'
+                }
+            },
+            'United Kingdom': {
+                'currency': 'GBP',
+                'exchange_rate': 0.75,
+                'billing_address': {
+                    'address1': '123 London Road',
+                    'address2': '456 London Street',
+                    'address3': '789 London Lane',
+                    'city': 'London',
+                    'postalCode': 'EC1A 1BB',
+                    'countryCode': 'GB'
+                }
+            },
+            'Japan': {
+                'currency': 'JPY',
+                'exchange_rate': 110.0,
+                'billing_address': {
+                    'address1': '123 Tokyo Street',
+                    'address2': '456 Tokyo Avenue',
+                    'address3': '789 Tokyo Lane',
+                    'city': 'Tokyo',
+                    'postalCode': '100-0001',
+                    'countryCode': 'JP'
+                }
             }
         }
 
@@ -279,7 +364,7 @@ def process_card():
                     },
                     "cvc": card_data['cvc']
                 },
-                "narrative": {"line1": "Bill Payment"},
+                "narrative": {"line1": "APG Payment"},
                 "value": {
                     "currency": config['currency'],
                     "amount": local_amount
@@ -343,7 +428,76 @@ def process_alipay():
         
         # 2. Country validation and config
         COUNTRY_SETTINGS = {
-            'China': {'currency': 'CNY','language': 'zh'},
+            'China': {
+                'currency': 'CNY',
+                'language': 'zh',
+                'exchange_rate': 7.18,
+                'customer': {
+                    'firstName': 'Xhiao',
+                    'lastName': 'Xubeg',
+                    'email': 'xhiao@example.com'
+                },
+            },
+            'Germany': {
+                'currency': 'EUR',
+                'language': 'de',
+                'exchange_rate': 0.85,
+                'customer': {
+                    'firstName': 'Hans',
+                    'lastName': 'Müller',
+                    'email': 'hans@example.com'
+                },
+            },
+            'France': {
+                'currency': 'EUR',
+                'language': 'fr',
+                'exchange_rate': 0.85,
+                'customer': {
+                    'firstName': 'Jean',
+                    'lastName': 'Dupont',
+                    'email': 'jean@example.com'
+                }
+            },
+            'Italy': {
+                'currency': 'EUR',
+                'language': 'it',
+                'exchange_rate': 0.85,
+                'customer': {
+                    'firstName': 'Mario',
+                    'lastName': 'Rossi',
+                    'email': 'mario@example.com'
+                }
+            },
+            'Belgium': {
+                'currency': 'EUR',
+                'language': 'nl',
+                'exchange_rate': 0.85,
+                'customer': {
+                    'firstName': 'Jan',
+                    'lastName': 'Peeters',
+                    'email': 'jan@example.com'
+                }
+            },
+            'United Kingdom': {
+                'currency': 'GBP',
+                'language': 'en',
+                'exchange_rate': 0.75,
+                'customer': {
+                    'firstName': 'John',
+                    'lastName': 'Doe',
+                    'email': 'john@example.com'
+                }
+            },
+            'Japan': {
+                'currency': 'JPY',
+                'language': 'ja',
+                'exchange_rate': 110.0,
+                'customer': {
+                    'firstName': 'Taro',
+                    'lastName': 'Yamamoto',
+                    'email': 'taro@example.com'
+                }
+            },    
         }
         
         if country not in COUNTRY_SETTINGS:
@@ -355,12 +509,8 @@ def process_alipay():
 
         config = COUNTRY_SETTINGS[country]
         
-        # Calculate total_local using session's total_amount and a default exchange rate (set to 1 if not present)
         total_amount = session.get('total_amount', 0)
-        # You may want to define exchange rates for each country; here we use 1 as a fallback
-        exchange_rates = {'China': 7.18}
-        exchange_rate = exchange_rates.get(country, 1)
-        local_amount = float(total_amount) * exchange_rate
+        local_amount = float(total_amount) * config['exchange_rate'] 
 
         # 3. Build fixed Alipay payload (structure never changes)
         payload = {
@@ -375,7 +525,7 @@ def process_alipay():
                     "currency": config['currency']
                 },
                 "narrative": {
-                    "line1": "MindPalace Service"
+                    "line1": "APG Service"
                 },
                 "paymentInstrument": {
                     "type": "direct",
@@ -392,9 +542,7 @@ def process_alipay():
                     "operatingSystem": "windows"
                },
                 "customer": {
-                    "firstName": "Xhiao",
-                    "lastName": "Xubeg",
-                    "email": "xhiao@example.com"
+                    **config['customer'],
                 }
             }
         }
@@ -439,7 +587,7 @@ def process_wechatpay():
     try:
         # 1. Get country from session and validate
         country = session.get('country')  
-        if country not in ['China','United States']:
+        if country not in ['China','United States','Germany','France','Italy','Belgium','United Kingdom','Japan']:
             return jsonify({
                 'status': 'error',
                 'message': f'Unsupported country: {country}'
@@ -454,7 +602,31 @@ def process_wechatpay():
             'United States': {
                 'currency': 'USD',
                 'exchange_rate': 1,
-            }
+            },
+            'Germany': {
+                'currency': 'EUR',
+                'exchange_rate': 0.85,
+            },
+            'France': {
+                'currency': 'EUR',
+                'exchange_rate': 0.85,
+            },
+            'Italy': {
+                'currency': 'EUR',
+                'exchange_rate': 0.85,
+            },
+            'Belgium': {
+                'currency': 'EUR',
+                'exchange_rate': 0.85,
+            },
+            'United Kingdom': {
+                'currency': 'GBP',
+                'exchange_rate': 0.75,
+            },
+            'Japan': {
+                'currency': 'JPY',
+                'exchange_rate': 110.0,
+            },
         }
 
         config = COUNTRY_CONFIG[country]
@@ -619,7 +791,169 @@ def process_paypal():
                 "customer": {
                     "email":"asdasd@gmail.com"
                 }
-            }
+            },
+            'Germany': {
+                'currency': 'EUR',
+                'exchange_rate': 0.85,
+                'billing_address': {
+                    'address1': '123 Berlin Strasse',
+                    'address2': '456 Berlin Platz',
+                    'address3': '789 Berlin Weg',
+                    'postalCode': '10115',
+                    'city': 'Berlin',
+                    'state': 'BE',
+                    'countryCode': 'DE'
+                },
+                "shipping": {
+                    "firstName": "James",
+                    "lastName": "Moriarty",
+                    "address": {
+                        "address1": "The Palatine Centre",
+                        "postalCode": "DH1 3LE",
+                        "city": "Durham",
+                        "state": "DE",
+                        "countryCode": "DE"
+                    }
+                },
+                "customer": {
+                    "email":"james@example.com"
+                }
+            },
+            'France': {
+                'currency': 'EUR',
+                'exchange_rate': 0.85,
+                'billing_address': {
+                    'address1': '123 Rue de Paris',
+                    'address2': '456 Avenue de France',
+                    'address3': '789 Boulevard de Paris',
+                    'postalCode': '75001',
+                    'city': 'Paris',
+                    'state': 'IDF',
+                    'countryCode': 'FR'
+                },
+                "shipping": {
+                    "firstName": "James",
+                    "lastName": "Moriarty",
+                    "address": {
+                        "address1": "The Palatine Centre",
+                        "postalCode": "DH1 3LE",
+                        "city": "Durham",
+                        "state": "IDF",
+                        "countryCode": "FR"
+                    }
+                },
+                "customer": {
+                    "email":"james@example.com"
+                }
+            },
+            'Italy': {
+                'currency': 'EUR',
+                'exchange_rate': 0.85,
+                'billing_address': {
+                    'address1': '123 Via Roma',
+                    'address2': '456 Piazza Italia',
+                    'address3': '789 Corso Italia',
+                    'postalCode': '00100',
+                    'city': 'Rome',
+                    'state': 'RM',
+                    'countryCode': 'IT'
+                },
+                "shipping": {
+                    "firstName": "James",
+                    "lastName": "Moriarty",
+                    "address": {
+                        "address1": "The Palatine Centre",
+                        "postalCode": "DH1 3LE",
+                        "city": "Durham",
+                        "state": "RM",
+                        "countryCode": "IT"
+                    }
+                },
+                "customer": {
+                    "email":"james@example.com"
+                }
+            },
+            'Belgium': {
+                'currency': 'EUR',
+                'exchange_rate': 0.85,
+                'billing_address': {
+                    'address1': '123 Rue de Bruxelles',
+                    'address2': '456 Avenue de Belgique',
+                    'address3': '789 Boulevard de Bruxelles',
+                    'postalCode': '1000',
+                    'city': 'Brussels',
+                    'state': 'BRU',
+                    'countryCode': 'BE'
+                },
+                "shipping": {
+                    "firstName": "James",
+                    "lastName": "Moriarty",
+                    "address": {
+                        "address1": "The Palatine Centre",
+                        "postalCode": "DH1 3LE",
+                        "city": "Durham",
+                        "state": "BRU",
+                        "countryCode": "BE"
+                    }
+                },
+                "customer": {
+                    "email":"jaems@example.com"
+                }
+            },
+            'United Kingdom': {
+                'currency': 'GBP',
+                'exchange_rate': 0.75,
+                'billing_address': {
+                    'address1': '123 London Road',
+                    'address2': '456 London Street',
+                    'address3': '789 London Lane',
+                    'postalCode': 'EC1A 1BB',
+                    'city': 'London',
+                    'state': 'ENG',
+                    'countryCode': 'GB'
+                },
+                "shipping": {
+                    "firstName": "James",
+                    "lastName": "Moriarty",
+                    "address": {
+                        "address1": "The Palatine Centre",
+                        "postalCode": "DH1 3LE",
+                        "city": "Durham",
+                        "state": "ENG",
+                        "countryCode": "GB"
+                    }
+                },
+                "customer": {
+                    "email":"jemes@example.com"
+                }
+            },
+            'Japan': {
+                'currency': 'JPY',
+                'exchange_rate': 110.0,
+                'billing_address': {
+                    'address1': '123 Tokyo Street',
+                    'address2': '456 Tokyo Avenue',
+                    'address3': '789 Tokyo Lane',
+                    'postalCode': '100-0001',
+                    'city': 'Tokyo',
+                    'state': '13',
+                    'countryCode': 'JP'
+                },
+                "shipping": {
+                    "firstName": "James",
+                    "lastName": "Moriarty",
+                    "address": {
+                        "address1": "The Palatine Centre",
+                        "postalCode": "DH1 3LE",
+                        "city": "Durham",
+                        "state": "13",
+                        "countryCode": "JP"
+                    }
+                },
+                "customer": {
+                    "email":"james@example.com"
+                }
+            }            
         }
         
         if country not in COUNTRY_CONFIG:
@@ -648,7 +982,7 @@ def process_paypal():
                     "currency": config['currency']
                 },
                 "narrative": {
-                    "line1": "MindPalace Service"
+                    "line1": "APG Service"
                 },
                 "paymentInstrument": {
                     "type": "direct",
@@ -686,9 +1020,6 @@ def process_paypal():
             auth=(WORLDPAY_USERNAME, WORLDPAY_PASSWORD),
             timeout=30
         )
-        app.logger.debug(f"Worldpay response status: {response.status_code}")
-        app.logger.debug(f"Worldpay response headers: {dict(response.headers)}")
-        app.logger.debug(f"Worldpay full response: {response.text}")
         # 5. Handle response
         if response.status_code == 201:
             data = response.json()
@@ -711,6 +1042,345 @@ def process_paypal():
 
     except Exception:
         return jsonify({'status': 'error', 'message': 'Processing failed'}), 500
+
+@app.route('/process_paysafecard', methods=['POST'])
+def process_paysafecard():
+    try:
+        
+        country = session.get('country') 
+        
+        # 2. Country validation and config
+        COUNTRY_SETTINGS = {
+            'Germany': {
+                'currency': 'EUR',
+                'country': 'DE',
+                'exchange_rate': 0.85,
+                'customer': {
+                    'email': 'hans@example.com'
+                },
+            },
+            'France': {
+                'currency': 'EUR',
+                'country': 'FR',
+                'exchange_rate': 0.85,
+                'customer': {
+                    'email': 'jean@example.com'
+                }
+            },
+            'Italy': {
+                'currency': 'EUR',
+                'country': 'IT',
+                'exchange_rate': 0.85,
+                'customer': {
+                    'email': 'mario@example.com'
+                }
+            },
+            'Belgium': {
+                'currency': 'EUR',
+                'country': 'BE',
+                'exchange_rate': 0.85,
+                'customer': {
+                    'email': 'jan@example.com'
+                }
+            },
+            'United Kingdom': {
+                'currency': 'GBP',
+                'country': 'GB',
+                'exchange_rate': 0.75,
+                'customer': {
+                    'email': 'john@example.com'
+                }
+            },
+        }
+        
+        if country not in COUNTRY_SETTINGS:
+            return jsonify({
+                'status': 'error',
+                'message': f'Paysafecard not supported in {country}',
+                'supported_countries': list(COUNTRY_SETTINGS.keys())
+            }), 400
+
+        config = COUNTRY_SETTINGS[country]
+        
+        total_amount = session.get('total_amount', 0)
+        local_amount = float(total_amount) * config['exchange_rate'] 
+
+        # 3. Build fixed paysafecard payload (structure never changes)
+        payload = {
+            "transactionReference": f"PAYSFECRD-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            "merchant": {
+                "entity": "default",
+            },
+            "instruction": {
+                "method": "paysafecard",
+                "value": {
+                    "amount": int(float(local_amount) * 100),  # cents
+                    "currency": config['currency']
+                },
+                "narrative": {
+                    "line1": "APG Service"
+                },
+                "paymentInstrument": {
+                    "type": "direct",
+                    "country": config['country'],
+                },
+                "resultUrls": {
+                    "pending": url_for('bills', _external=True),                  
+                    "success": url_for('payment_success', _external=True),
+                    "cancel": url_for('bills', _external=True)
+                },
+                "customer": {
+                    **config['customer'],
+                }
+            }
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "WP-Api-Version": "2024-07-01"
+        }
+        
+        response = requests.post(
+            "https://try.access.worldpay.com/apmPayments",
+            json=payload,
+            headers=headers,
+            auth=(WORLDPAY_USERNAME, WORLDPAY_PASSWORD),
+            timeout=30
+        )
+        # 5. Handle response
+        if response.status_code == 201:
+            data = response.json()
+            session.update({
+                'payment_id': data.get('paymentId'),
+                'transaction_ref': payload['transactionReference'],
+                'paid_amount': payload['instruction']['value']['amount'] / 100,
+                'paid_currency': config['currency']
+            })
+            return jsonify({
+                'status': 'success',
+                'redirect_url': data.get('redirect')
+            })
+
+        return jsonify({
+            'status': 'error',
+            'message': 'Paysafecard API error',
+            'response': response.text
+        }), 400
+
+    except Exception:
+        return jsonify({'status': 'error', 'message': 'Processing failed'}), 500
+
+@app.route('/process_openbanking', methods=['POST'])
+def process_openbanking():
+    try:
+        
+        country = session.get('country') 
+        
+        # 2. Country validation and config
+        COUNTRY_SETTINGS = {
+            'Germany': {
+                'currency': 'EUR',
+                'country': 'DE',
+                'language': 'de',
+                'bankCode': '1345',
+                'exchange_rate': 0.85,
+                'customer': {
+                    'email': 'hans@example.com',
+                    'customerId': 'id1234',
+                },
+            },
+            'France': {
+                'currency': 'EUR',
+                'country': 'FR',
+                'language': 'fr',
+                'bankCode': '5678',
+                'exchange_rate': 0.85,
+                'customer': {
+                    'email': 'jean@example.com',
+                    'customerId': 'id5678',
+                }
+            },
+            'Italy': {
+                'currency': 'EUR',
+                'country': 'IT',
+                'language': 'it',
+                'bankCode': '9101',
+                'exchange_rate': 0.85,
+                'customer': {
+                    'email': 'mario@example.com',
+                    'customerId': 'id9101',
+                }
+            },
+            'Belgium': {
+                'currency': 'EUR',
+                'country': 'BE',
+                'language': 'nl',
+                'bankCode': '1122',
+                'exchange_rate': 0.85,
+                'customer': {
+                    'email': 'jan@example.com',
+                    'customerId': 'id1122',
+                }
+            },
+            'United Kingdom': {
+                'currency': 'GBP',
+                'country': 'GB',
+                'language': 'en',
+                'bankCode': '3344',
+                'exchange_rate': 0.75,
+                'customer': {
+                    'email': 'john@example.com',
+                    'customerId': 'id3344',
+                }
+            },
+        }
+        
+        if country not in COUNTRY_SETTINGS:
+            return jsonify({
+                'status': 'error',
+                'message': f'Openbanking not supported in {country}',
+                'supported_countries': list(COUNTRY_SETTINGS.keys())
+            }), 400
+
+        config = COUNTRY_SETTINGS[country]
+        
+        total_amount = session.get('total_amount', 0)
+        local_amount = float(total_amount) * config['exchange_rate'] 
+
+        # 3. Build fixed openbanking payload (structure never changes)
+        payload = {
+            "transactionReference": f"OPENBANK-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            "merchant": {
+                "entity": "default",
+            },
+            "instruction": {
+                "method": "open_banking",
+                "expiryIn": 200, 
+                "value": {
+                    "amount": int(float(local_amount) * 100),  # cents
+                    "currency": config['currency']
+                },
+                "narrative": {
+                    "line1": "APG Service"
+                },
+                "paymentInstrument": {
+                    "type": "direct",
+                    "country": config['country'],
+                    "language": config['language'],
+                    "bankCode": config['bankCode'],
+                },
+                "resultUrls": {
+                    "pending": url_for('bills', _external=True),                  
+                    "success": url_for('payment_success', _external=True),
+                    "cancel": url_for('bills', _external=True),
+                    "failure": url_for('bills', _external=True)
+                },
+                "customer": {
+                    **config['customer'],
+                }
+            }
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "WP-Api-Version": "2024-07-01"
+        }
+        
+        response = requests.post(
+            "https://try.access.worldpay.com/apmPayments",
+            json=payload,
+            headers=headers,
+            auth=(WORLDPAY_USERNAME, WORLDPAY_PASSWORD),
+            timeout=30
+        )
+        # 5. Handle response
+        if response.status_code == 201:
+            data = response.json()
+            session.update({
+                'payment_id': data.get('paymentId'),
+                'transaction_ref': payload['transactionReference'],
+                'paid_amount': payload['instruction']['value']['amount'] / 100,
+                'paid_currency': config['currency']
+            })
+            return jsonify({
+                'status': 'success',
+                'redirect_url': data.get('redirect')
+            })
+
+        return jsonify({
+            'status': 'error',
+            'message': 'Openbanking API error',
+            'response': response.text
+        }), 400
+
+    except Exception:
+        return jsonify({'status': 'error', 'message': 'Processing failed'}), 500
+
+@app.route('/process_bancontact', methods=['POST'])
+def process_bancontact():
+        
+        total_amount = session.get('total_amount', 0)
+        local_amount = float(total_amount) * 0.85 
+
+        # 3. Build fixed bancontact payload (structure never changes)
+        payload = {
+            "transactionReference": f"BANCONT-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            "merchant": {
+                "entity": "default",
+            },
+            "instruction": {
+                "method": "bancontact",
+                "value": {
+                    "amount": int(float(local_amount) * 100),  # cents
+                    "currency": "EUR"
+                },
+                "narrative": {
+                    "line1": "APG Service"
+                },
+                "paymentInstrument": {
+                    "type": "direct",
+                    "country": "BE",  
+                },
+                "resultUrls": {
+                    "cancel": url_for('bills', _external=True),
+                    "pending": url_for('bills', _external=True),                  
+                    "success": url_for('payment_success', _external=True),
+                    
+                },
+                "customer": {
+                    "email": 'jan@example.com',
+                }
+            }
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "WP-Api-Version": "2024-07-01"
+        }
+        
+        response = requests.post(
+            "https://try.access.worldpay.com/apmPayments",
+            json=payload,
+            headers=headers,
+            auth=(WORLDPAY_USERNAME, WORLDPAY_PASSWORD),
+            timeout=30
+        )
+        # 5. Handle response
+        if response.status_code == 201:
+            data = response.json()
+            session.update({
+                'payment_id': data.get('paymentId'),
+                'transaction_ref': payload['transactionReference'],
+                'paid_amount': payload['instruction']['value']['amount'] / 100,
+                'paid_currency': 'EUR',
+            })
+            return jsonify({
+                'status': 'success',
+                'redirect_url': data.get('redirect')
+            })
+
+        return jsonify({
+            'status': 'error',
+            'message': 'bancontact API error',
+            'response': response.text
+        }), 400
     
 @app.route('/success')
 def payment_success():

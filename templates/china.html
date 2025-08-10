@@ -212,7 +212,16 @@
         .form-group {
             margin-bottom: 1.25rem;
         }
+        .payment-title {
+    display: flex;
+    flex-direction: column;
+}
 
+        .payment-subtitle {
+    font-size: 0.85em;
+    color: #888; /* lighter grey text */
+    margin-left: 1.5em; /* aligns under main text, not icon */
+}
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
@@ -344,7 +353,10 @@
                 <!-- Credit Card Method -->
                 <div class="payment-method" id="card-method">
     <div class="payment-method-header">
+        <div class="payment-title">
         <span><i class="fas fa-credit-card"></i> Credit/Debit Card</span>
+        <div class="payment-subtitle">American Express / Cartes Bancaires / Discover / Diners / EFTPOS JCB / Maestro / MasterCard / MasterCard Debit / Visa / Visa Debit Visa Electron (UK only)</div>
+        </div>
         <i class="fas fa-chevron-down"></i>
     </div>
     <div class="payment-method-content">

@@ -208,7 +208,16 @@
         .btn-wechat {
             background-color: var(--secondary);
         }
+        .payment-title {
+    display: flex;
+    flex-direction: column;
+}
 
+        .payment-subtitle {
+    font-size: 0.85em;
+    color: #888; /* lighter grey text */
+    margin-left: 1.5em; /* aligns under main text, not icon */
+}
         .form-group {
             margin-bottom: 1.25rem;
         }
@@ -340,7 +349,10 @@
                 <!-- Credit Card Method -->
                 <div class="payment-method" id="card-method">
     <div class="payment-method-header">
+        <div class="payment-title">
         <span><i class="fas fa-credit-card"></i> Credit/Debit Card</span>
+        <div class="payment-subtitle">American Express / Cartes Bancaires / Discover / Diners / EFTPOS JCB / Maestro / MasterCard / MasterCard Debit / Visa / Visa Debit Visa Electron (UK only)</div>
+        </div>
         <i class="fas fa-chevron-down"></i>
     </div>
     <div class="payment-method-content">
@@ -398,7 +410,7 @@
                     <div class="payment-method-content">
                         <p style="margin-bottom: 1.5rem; color: var(--gray);">You will be redirected to Paypal to complete your payment of ${{ "%.2f"|format(total_local * 1.06) }}</p>
                         <button class="payment-btn btn-alipay" id="paypal-btn">
-                            <i class="fab fa-alipay"></i> Pay with Paypal
+                            <i class="fab fa-paypal"></i> Pay with Paypal
                         </button>
                     </div>
                 </div>
