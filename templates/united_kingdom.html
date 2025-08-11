@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang_code }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -298,14 +298,14 @@
                     </div>
                     <div class="summary-item">
                         <div class="summary-label">Exchange Rate</div>
-                        <div class="summary-value">1 USD = {{ exchange_rate }} EUR</div>
+                        <div class="summary-value">1 USD = {{ exchange_rate }} GBP</div>
                     </div>
                     <div class="summary-item">
                         <div class="summary-label">Service Fee (6%)</div>
                         <div class="summary-value">${{ "%.2f"|format(total_usd * 0.06) }}</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-label">Total CNY Amount</div>
+                        <div class="summary-label">Total GBP Amount</div>
                         <div class="summary-value">£{{ "%.2f"|format(total_local * 1.06) }}</div>
                     </div>
                 </div>
@@ -595,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({
                     amount: {{ total_local * 1.06 }},
-                    currency: 'EUR'
+                    currency: 'GBP'
                 })
             });
             
@@ -622,7 +622,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({
                     amount: {{ total_local * 1.06 }},
-                    currency: 'EUR'
+                    currency: 'GBP'
                 })
             });
             
@@ -650,7 +650,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({
                     amount: {{ total_local * 1.06 }},
-                    currency: 'USD'
+                    currency: 'GBP'
                 })
             });
             
@@ -677,7 +677,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({
                     amount: {{ total_local * 1.06 }},
-                    currency: 'CNY'
+                    currency: 'GBP'
                 })
             });
             
@@ -704,7 +704,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify({
                 amount: {{ total_local * 1.06 }},
-                currency: 'CNY'
+                currency: 'GBP'
             })
         });
 

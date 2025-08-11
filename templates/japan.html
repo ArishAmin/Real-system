@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>China Payment Gateway</title>
+    <title>Japan</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -141,6 +141,17 @@
             overflow: hidden;
             transition: var(--transition);
         }
+        
+        .payment-title {
+    display: flex;
+    flex-direction: column;
+}
+
+        .payment-subtitle {
+    font-size: 0.85em;
+    color: #888; /* lighter grey text */
+    margin-left: 1.5em; /* aligns under main text, not icon */
+}
 
         .payment-method-header {
             padding: 1.25rem;
@@ -212,16 +223,7 @@
         .form-group {
             margin-bottom: 1.25rem;
         }
-        .payment-title {
-    display: flex;
-    flex-direction: column;
-}
 
-        .payment-subtitle {
-    font-size: 0.85em;
-    color: #888; /* lighter grey text */
-    margin-left: 1.5em; /* aligns under main text, not icon */
-}
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
@@ -296,14 +298,14 @@
                     </div>
                     <div class="summary-item">
                         <div class="summary-label">Exchange Rate</div>
-                        <div class="summary-value">1 USD = {{ exchange_rate }} CNY</div>
+                        <div class="summary-value">1 USD = {{ exchange_rate }} JPY</div>
                     </div>
                     <div class="summary-item">
                         <div class="summary-label">Service Fee (6%)</div>
                         <div class="summary-value">${{ "%.2f"|format(total_usd * 0.06) }}</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-label">Total CNY Amount</div>
+                        <div class="summary-label">Total JPY Amount</div>
                         <div class="summary-value">¥{{ "%.2f"|format(total_local * 1.06) }}</div>
                     </div>
                 </div>
@@ -389,7 +391,7 @@
             <div class="form-group">
                 <label>Cardholder Name</label>
                 <input type="text" id="cardholder-name" class="form-control" 
-                       value="Zhang Wei" placeholder="As shown on card">
+                       value="Taro Yamamoto" placeholder="As shown on card">
             </div>
             
             <div id="card-error-msg" class="error-message" style="color: #dc3545; margin-bottom: 1rem;"></div>
@@ -405,6 +407,34 @@
     </div>
 </div>
                 
+                <!-- Konbini Method -->
+                <div class="payment-method" id="konbini-method">
+                    <div class="payment-method-header">
+                        <span>🏪 Konbini</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="payment-method-content">
+                        <p style="margin-bottom: 1.5rem; color: var(--gray);">You will be redirected to Konbini to complete your payment of ¥{{ "%.2f"|format(total_local * 1.06) }}</p>
+                        <button class="payment-btn btn-alipay" id="konbini-btn">
+                            <i class="fab fa-paypal"></i> Pay with Konbini
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Paypal Method -->
+                <div class="payment-method" id="paypal-method">
+                    <div class="payment-method-header">
+                        <span><i class="fab fa-paypal"></i> Paypal</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="payment-method-content">
+                        <p style="margin-bottom: 1.5rem; color: var(--gray);">You will be redirected to Paypal to complete your payment of ¥{{ "%.2f"|format(total_local * 1.06) }}</p>
+                        <button class="payment-btn btn-alipay" id="paypal-btn">
+                            <i class="fab fa-paypal"></i> Pay with Paypal
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Alipay Method -->
                 <div class="payment-method" id="alipay-method">
                     <div class="payment-method-header">
@@ -542,6 +572,60 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+    // Konbini Payment Processing
+    document.getElementById('konbini-btn').addEventListener('click', async function() {
+        try {
+            const response = await fetch('/process_konbini', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    amount: {{ total_local * 1.06 }},
+                    currency: 'JPY'
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'success' && result.redirect_url) {
+                window.location.href = result.redirect_url;
+            } else {
+                alert('Payment failed: ' + (result.message || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Payment error:', error);
+            alert('Payment processing error');
+        }
+    });
+
+    // paypal Payment Processing
+    document.getElementById('paypal-btn').addEventListener('click', async function() {
+        try {
+            const response = await fetch('/process_paypal', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    amount: {{ total_local * 1.06 }},
+                    currency: 'JPY'
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'success' && result.redirect_url) {
+                window.location.href = result.redirect_url;
+            } else {
+                alert('Payment failed: ' + (result.message || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Payment error:', error);
+            alert('Payment processing error');
+        }
+    });
+
     // Alipay Payment Processing
     document.getElementById('alipay-btn').addEventListener('click', async function() {
         try {
@@ -552,7 +636,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({
                     amount: {{ total_local * 1.06 }},
-                    currency: 'CNY'
+                    currency: 'JPY'
                 })
             });
             
@@ -579,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify({
                 amount: {{ total_local * 1.06 }},
-                currency: 'CNY'
+                currency: 'JPY'
             })
         });
 

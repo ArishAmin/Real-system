@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang_code }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -414,6 +414,20 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- Alipay Method -->
+                <div class="payment-method" id="alipay-method">
+                    <div class="payment-method-header">
+                        <span><i class="fab fa-alipay"></i> Alipay</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="payment-method-content">
+                        <p style="margin-bottom: 1.5rem; color: var(--gray);">You will be redirected to Alipay to complete your payment of ${{ "%.2f"|format(total_local * 1.06) }}</p>
+                        <button class="payment-btn btn-alipay" id="alipay-btn">
+                            <i class="fab fa-alipay"></i> Pay with Alipay
+                        </button>
+                    </div>
+                </div>
                 
                 <!-- WeChat Pay Method -->
                 <div class="payment-method" id="wechat-method">
@@ -564,6 +578,33 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Payment processing error');
         }
     });
+    
+    // Alipay Payment Processing
+    document.getElementById('alipay-btn').addEventListener('click', async function() {
+        try {
+            const response = await fetch('/process_alipay', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    amount: {{ total_local * 1.06 }},
+                    currency: 'USD'
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'success' && result.redirect_url) {
+                window.location.href = result.redirect_url;
+            } else {
+                alert('Payment failed: ' + (result.message || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Payment error:', error);
+            alert('Payment processing error');
+        }
+    });
 
     // WeChat Pay Payment Processing
     document.getElementById('wechat-btn').addEventListener('click', async function () {
@@ -575,7 +616,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify({
                 amount: {{ total_local * 1.06 }},
-                currency: 'CNY'
+                currency: 'USD'
             })
         });
 

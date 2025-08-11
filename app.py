@@ -30,6 +30,19 @@ COUNTRIES = [
     {"name": "Italy", "code": "IT"},
     
 ]
+# Language mapping for each country
+LANGUAGE_MAP = {
+    "China": "zh",
+    "United States": "en",
+    "Germany": "de",
+    "France": "fr",
+    "Japan": "ja",
+    "United Kingdom": "en",
+    "India": "en",
+    "Malaysia": "ms",
+    "Belgium": "nl",
+    "Italy": "it"
+}
 
 # Sample invoice descriptions
 INVOICE_DESCRIPTIONS = [
@@ -51,13 +64,14 @@ def index():
 def bills():
     # Get the latest invoice (the one just created)
     latest_invoice = supabase.table('invoices').select('*').order('created_at', desc=True).limit(1).execute().data[0]
-    
-    # Generate 3 random invoices (not saved to database)
     random_invoices = generate_random_invoices(3)
     
+    lang_code = LANGUAGE_MAP.get(session.get('country'))
+
     return render_template('bills.html', 
                          latest_invoice=latest_invoice,
-                         random_invoices=random_invoices)
+                         random_invoices=random_invoices,
+                         lang_code=lang_code,)
 
 def generate_random_invoices(count):
     descriptions = [
@@ -175,7 +189,8 @@ def process_payment():
         settings = COUNTRY_SETTINGS.get(country)
         total_local= session['total_amount'] * settings['exchange_rate'] if settings else session['total_amount']
         
-        # Render the appropriate template directly
+        lang_code = LANGUAGE_MAP.get(country)
+        
         return render_template(
             settings['template'],
             country=session.get('country_name', ''),
@@ -184,6 +199,7 @@ def process_payment():
             total_local=total_local,
             date=datetime.now().strftime('%Y-%m-%d'),
             total_usd=session['total_amount'],
+            lang_code=lang_code,
         )
         
     except Exception as e:
@@ -326,7 +342,7 @@ def process_card():
             },
             'Japan': {
                 'currency': 'JPY',
-                'exchange_rate': 110.0,
+                'exchange_rate': 147.82,
                 'billing_address': {
                     'address1': '123 Tokyo Street',
                     'address2': '456 Tokyo Avenue',
@@ -438,6 +454,16 @@ def process_alipay():
                     'email': 'xhiao@example.com'
                 },
             },
+            'United States': {
+                'currency': 'USD',
+                'language': 'en',
+                'exchange_rate': 1,
+                'customer': {
+                    'firstName': 'John',
+                    'lastName': 'Doe',
+                    'email': 'john@example.com'
+                },
+            },
             'Germany': {
                 'currency': 'EUR',
                 'language': 'de',
@@ -491,7 +517,7 @@ def process_alipay():
             'Japan': {
                 'currency': 'JPY',
                 'language': 'ja',
-                'exchange_rate': 110.0,
+                'exchange_rate': 147.82,
                 'customer': {
                     'firstName': 'Taro',
                     'lastName': 'Yamamoto',
@@ -625,7 +651,7 @@ def process_wechatpay():
             },
             'Japan': {
                 'currency': 'JPY',
-                'exchange_rate': 110.0,
+                'exchange_rate': 147.82,
             },
         }
 
@@ -929,7 +955,7 @@ def process_paypal():
             },
             'Japan': {
                 'currency': 'JPY',
-                'exchange_rate': 110.0,
+                'exchange_rate': 147.82,
                 'billing_address': {
                     'address1': '123 Tokyo Street',
                     'address2': '456 Tokyo Avenue',
@@ -1379,6 +1405,79 @@ def process_bancontact():
         return jsonify({
             'status': 'error',
             'message': 'bancontact API error',
+            'response': response.text
+        }), 400
+
+@app.route('/process_konbini', methods=['POST'])
+def process_konbini():
+        
+        config = {
+            'customer': {
+                'lastName': 'Yamada',
+                'email': 'Taro@example.com',
+                'phone': '08012345678',
+            }
+        }
+        
+        total_amount = session.get('total_amount', 0)
+        local_amount = float(total_amount) * 147.82 
+
+        # 3. Build fixed konbini payload (structure never changes)
+        payload = {
+            "transactionReference": f"KONBINI-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            "merchant": {
+                "entity": "default",
+            },
+            "instruction": {
+                "method": "konbini",
+                "value": {
+                    "amount": int(float(local_amount)),  
+                    "currency": 'JPY',
+                },
+                "narrative": {
+                    "line1": "APG Service"
+                },
+                "paymentInstrument": {
+                    "type": "direct",
+                    "country": 'JP',
+                },
+                "resultUrls": {
+                    "pending": url_for('payment_success', _external=True)                  
+                },
+                "customer": {
+                    **config['customer'],
+                }
+            }
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "WP-Api-Version": "2024-07-01"
+        }
+        
+        response = requests.post(
+            "https://try.access.worldpay.com/apmPayments",
+            json=payload,
+            headers=headers,
+            auth=(WORLDPAY_USERNAME, WORLDPAY_PASSWORD),
+            timeout=30
+        )
+        # 5. Handle response
+        if response.status_code == 201:
+            data = response.json()
+            session.update({
+                'payment_id': data.get('paymentId'),
+                'transaction_ref': payload['transactionReference'],
+                'paid_amount': payload['instruction']['value']['amount'] / 100,
+                'paid_currency': 'JPY'
+            })
+            return jsonify({
+                'status': 'success',
+                'redirect_url': data.get('redirect')
+            })
+
+        return jsonify({
+            'status': 'error',
+            'message': 'Konbini API error',
             'response': response.text
         }), 400
     

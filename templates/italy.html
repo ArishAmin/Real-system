@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang_code }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -305,7 +305,7 @@
                         <div class="summary-value">${{ "%.2f"|format(total_usd * 0.06) }}</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-label">Total CNY Amount</div>
+                        <div class="summary-label">Total EUR Amount</div>
                         <div class="summary-value">€{{ "%.2f"|format(total_local * 1.06) }}</div>
                     </div>
                 </div>
@@ -650,7 +650,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({
                     amount: {{ total_local * 1.06 }},
-                    currency: 'USD'
+                    currency: 'EUR'
                 })
             });
             
@@ -677,7 +677,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({
                     amount: {{ total_local * 1.06 }},
-                    currency: 'CNY'
+                    currency: 'EUR'
                 })
             });
             
@@ -704,7 +704,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify({
                 amount: {{ total_local * 1.06 }},
-                currency: 'CNY'
+                currency: 'EUR'
             })
         });
 
