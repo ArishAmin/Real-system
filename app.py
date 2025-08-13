@@ -361,7 +361,7 @@ def process_card():
         if country == 'Japan':
             local_amount=int(usd_amount * config['exchange_rate'])
         else:
-        local_amount = int(usd_amount * config['exchange_rate'] * 100)  # in cents
+            local_amount = int(usd_amount * config['exchange_rate'] * 100)  # in cents
 
         # 5. Build payload with country-specific details
         payload = {
