@@ -538,7 +538,7 @@ def process_alipay():
 
         config = COUNTRY_SETTINGS[country]
         
-        total_amount = session.get('total_amount', 0)
+        usd_amount = session.get('total_amount', 0)
         if country == 'Japan':
             local_amount=int(usd_amount * config['exchange_rate'])
         else:
@@ -1001,7 +1001,7 @@ def process_paypal():
         config = COUNTRY_CONFIG[country]
         
         
-        total_amount = session.get('total_amount', 0)
+        usd_amount = session.get('total_amount', 0)
         if country == 'Japan':
             local_amount=int(usd_amount * config['exchange_rate'])
         else:
