@@ -539,7 +539,10 @@ def process_alipay():
         config = COUNTRY_SETTINGS[country]
         
         total_amount = session.get('total_amount', 0)
-        local_amount = float(total_amount) * config['exchange_rate'] 
+        if country == 'Japan':
+            local_amount=int(usd_amount * config['exchange_rate'])
+        else:
+            local_amount = int(usd_amount * config['exchange_rate'] * 100)  # in cents 
 
         # 3. Build fixed Alipay payload (structure never changes)
         payload = {
@@ -550,7 +553,7 @@ def process_alipay():
             "instruction": {
                 "method": "alipay_cn",
                 "value": {
-                    "amount": int(float(local_amount) * 100),  # cents
+                    "amount": local_amount,  
                     "currency": config['currency']
                 },
                 "narrative": {
@@ -662,7 +665,10 @@ def process_wechatpay():
         
         # 4. Calculate amount in local currency
         usd_amount = float(session.get('total_amount', 0))
-        local_amount = int(usd_amount * config['exchange_rate'] * 100)  # in cents
+        if country == 'Japan':
+            local_amount=int(usd_amount * config['exchange_rate'])
+        else:
+            local_amount = int(usd_amount * config['exchange_rate'] * 100)    # in cents
 
         # 5. Build payload with country-specific details
         payload = {
@@ -996,7 +1002,10 @@ def process_paypal():
         
         
         total_amount = session.get('total_amount', 0)
-        local_amount = int(total_amount * config['exchange_rate']* 100)  # in cents
+        if country == 'Japan':
+            local_amount=int(usd_amount * config['exchange_rate'])
+        else:
+            local_amount = int(usd_amount * config['exchange_rate'] * 100)  # in cents
 
         
         payload = {
