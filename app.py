@@ -358,6 +358,9 @@ def process_card():
         
         # 4. Calculate amount in local currency
         usd_amount = float(session.get('total_amount', 0))
+        if country == 'Japan':
+            local_amount=int(usd_amount * config['exchange_rate'])
+        else:
         local_amount = int(usd_amount * config['exchange_rate'] * 100)  # in cents
 
         # 5. Build payload with country-specific details
