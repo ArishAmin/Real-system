@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ lang_code }}">
 <head>
     <title>Payment Successful</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -204,28 +204,28 @@
             
             <h2 class="receipt-title">
                 <i class="fas fa-check-circle"></i>
-                Your payment was successful
+                {{translate('Your payment was successful')}}
             </h2>
             
             <div class="receipt-grid">
                 <div class="receipt-section">
                     <h3 class="section-title">
                         <i class="fas fa-receipt"></i>
-                        Transaction Details
+                        {{translate('Transaction Details')}}
                     </h3>
                     
                     <div class="detail-item">
-                        <span class="detail-label">Transaction ID:</span>
+                        <span class="detail-label">{{translate('Transaction ID')}}:</span>
                         <span class="detail-value">{{ transaction_ref }}</span>
                     </div>
                     
                     <div class="detail-item">
-                        <span class="detail-label">Payment ID:</span>
+                        <span class="detail-label">{{translate('Payment ID')}}:</span>
                         <span class="detail-value">{{ payment_id }}</span>
                     </div>
                     
                     <div class="detail-item">
-                        <span class="detail-label">Date:</span>
+                        <span class="detail-label">{{translate('Date')}}:</span>
                         <span class="detail-value">{{ date }}</span>
                     </div>
                 </div>
@@ -233,27 +233,27 @@
                 <div class="receipt-section">
                     <h3 class="section-title">
                         <i class="fas fa-money-bill-wave"></i>
-                        Payment Amount
+                    {{translate('Payment Amount')}}
                     </h3>
                     
                     <div class="detail-item">
-                        <span class="detail-label">USD Amount:</span>
+                        <span class="detail-label">{{translate('USD Amount')}}:</span>
                         <span class="detail-value">${{ amount_usd }}</span>
                     </div>
                     
                     <div class="detail-item">
-                        <span class="detail-label">Local Amount:</span>
+                        <span class="detail-label">{{translate('Local Amount')}}:</span>
                         <span class="detail-value">{{ amount_paid }} {{ currency }}</span>
                     </div>
                 </div>
             </div>
             
             <div class="total-amount">
-                Paid Successfully: {{ amount_paid }} {{ currency }}
+                {{translate('Paid Successfully')}}: {{ amount_paid }} {{ currency }}
             </div>
             
             <a href="/" class="home-link">
-                <i class="fas fa-home"></i> Return to Home
+                <i class="fas fa-home"></i> {{translate('Return to Home')}}
             </a>
         </div>
     </div>

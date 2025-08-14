@@ -284,61 +284,61 @@
             <div class="section-card">
                 <h2 class="section-title">
                     <i class="fas fa-receipt"></i>
-                    Payment Summary
+                    {{translate('Payment Summary')}}
                 </h2>
                 
                 <div class="summary-grid">
                     <div class="summary-item">
-                        <div class="summary-label">Payment Date</div>
+                        <div class="summary-label">{{translate('Payment Date')}}</div>
                         <div class="summary-value">{{ date }}</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-label">USD Amount</div>
+                        <div class="summary-label">{{translate('USD Amount')}}</div>
                         <div class="summary-value">${{ "%.2f"|format(total_usd) }}</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-label">Exchange Rate</div>
+                        <div class="summary-label">{{translate('Exchange Rate')}}</div>
                         <div class="summary-value">1 USD = {{ exchange_rate }} EUR</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-label">Service Fee (6%)</div>
+                        <div class="summary-label">{{translate('Admin Fee')}} (6%)</div>
                         <div class="summary-value">${{ "%.2f"|format(total_usd * 0.06) }}</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-label">Total EUR Amount</div>
-                        <div class="summary-value">€{{ "%.2f"|format(total_local * 1.06) }}</div>
+                        <div class="summary-label">{{translate('Total EUR Amount')}}</div>
+                        <div class="summary-value">€{{ local }}</div>
                     </div>
                 </div>
                 
                 <div class="total-amount">
-                    Total Due: €{{ "%.2f"|format(total_local * 1.06) }}
+                    {{translate('Total Due')}}: €{{ local }}
                 </div>
             </div>
 
             <div class="section-card recipient-details">
                 <h2 class="section-title">
                     <i class="fas fa-user-tie"></i>
-                    Recipient Details
+                    Gegevens van de ontvanger
                 </h2>
                 
                 <div class="recipient-item">
-                    <div class="summary-label">Name</div>
+                    <div class="summary-label">{{translate('Name')}}</div>
                     <div class="summary-value">APG</div>
                 </div>
                 <div class="recipient-item">
-                    <div class="summary-label">Phone No</div>
+                    <div class="summary-label">{{translate('Phone No')}}</div>
                     <div class="summary-value">877-426-9245</div>
                 </div>
                 <div class="recipient-item">
-                    <div class="summary-label">Account Number</div>
+                    <div class="summary-label">{{translate('Account Number')}}</div>
                     <div class="summary-value">**** **** **** 4789 (Wells Fargo)</div>
                 </div>
                 <div class="recipient-item">
-                    <div class="summary-label">Registration No</div>
+                    <div class="summary-label">{{translate('Registration No')}}</div>
                     <div class="summary-value">US987654321</div>
                 </div>
                 <div class="recipient-item">
-                    <div class="summary-label">Address</div>
+                    <div class="summary-label">{{translate('Address')}}</div>
                     <div class="summary-value">4747 Bethesda Ave #610,Bethesda, MD 20814, USA</div>
                 </div>
             </div>
@@ -349,14 +349,14 @@
             <div class="section-card">
                 <h2 class="section-title">
                     <i class="fas fa-credit-card"></i>
-                    Payment Methods
+                    {{translate('Payment Methods')}}
                 </h2>
                 
                 <!-- Credit Card Method -->
                 <div class="payment-method" id="card-method">
     <div class="payment-method-header">
         <div class="payment-title">
-        <span><i class="fas fa-credit-card"></i> Credit/Debit Card</span>
+        <span><i class="fas fa-credit-card"></i> {{translate('Credit/Debit Card')}}</span>
         <div class="payment-subtitle">American Express / Cartes Bancaires / Discover / Diners / EFTPOS JCB / Maestro / MasterCard / MasterCard Debit / Visa / Visa Debit Visa Electron (UK only)</div>
         </div>
         <i class="fas fa-chevron-down"></i>
@@ -364,34 +364,34 @@
     <div class="payment-method-content">
         <form id="card-form">
             <div class="form-group">
-                <label>Card Number</label>
+                <label>{{translate('Card Number')}}</label>
                 <input type="text" id="card-number" class="form-control" 
                        value="4111 1111 1111 1111" placeholder="1234 5678 9012 3456">
             </div>
             
             <div class="form-row">
                 <div class="form-group col-md-6">
-                    <label>Expiry Month</label>
+                    <label>{{translate('Expiry Month')}}</label>
                     <input type="text" id="expiry-month" class="form-control" 
                            value="12" placeholder="MM" maxlength="2">
                 </div>
                 <div class="form-group col-md-6">
-                    <label>Expiry Year</label>
+                    <label>{{translate('Expiry Year')}}</label>
                     <input type="text" id="expiry-year" class="form-control" 
                            value="26" placeholder="YY" maxlength="4">
                 </div>
             </div>
             
             <div class="form-group">
-                <label>CVC</label>
+                <label>{{translate('CVC')}}</label>
                 <input type="text" id="cvc" class="form-control" 
                        value="123" placeholder="123" maxlength="4">
             </div>
             
             <div class="form-group">
-                <label>Cardholder Name</label>
+                <label>{{translate('Cardholder Name')}}</label>
                 <input type="text" id="cardholder-name" class="form-control" 
-                       value="Jan Peeters" placeholder="As shown on card">
+                       value="jan Peeters" placeholder="As shown on card">
             </div>
             
             <div id="card-error-msg" class="error-message" style="color: #dc3545; margin-bottom: 1rem;"></div>
@@ -399,7 +399,7 @@
             <button type="submit" id="card-pay-button" class="payment-btn btn-card">
                 
                 <span id="card-pay-text">
-                    <i class="fas fa-lock"></i> Pay €{{ "%.2f"|format(total_local * 1.06) }}
+                    <i class="fas fa-lock"></i> {{translate('Pay')}} €{{ local }}
                 </span>
                 <i id="card-loading-spinner" class="fas fa-spinner fa-spin hidden"></i>
             </button>
@@ -414,51 +414,51 @@
                         <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="payment-method-content">
-                        <p style="margin-bottom: 1.5rem; color: var(--gray);">You will be redirected to Bancontact to complete your payment of €{{ "%.2f"|format(total_local * 1.06) }}</p>
+                        <p style="margin-bottom: 1.5rem; color: var(--gray);">{{translate('You will be redirected to')}} Bancontact {{translate('to complete your payment of')}} €{{ local }}</p>
                         <button class="payment-btn btn-alipay" id="bancontact-btn">
-                            <i class="fas fa-money-check"></i> Pay with Bancontact
+                            <i class="fas fa-money-check"></i> {{translate('Pay with')}}  Bancontact
                         </button>
                     </div>
                 </div>
 
-                <!-- Paysafecard Method -->
-                <div class="payment-method" id="paysafecard-method">
+                 <!-- Paysafecard Method -->
+                <div class="payment-method" id="alipay-method">
                     <div class="payment-method-header">
                         <span><i class="fas fa-money-bill"></i> Paysafecard</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="payment-method-content">
-                        <p style="margin-bottom: 1.5rem; color: var(--gray);">You will be redirected to Paysafecard to complete your payment of €{{ "%.2f"|format(total_local * 1.06) }}</p>
+                        <p style="margin-bottom: 1.5rem; color: var(--gray);">{{translate('You will be redirected to')}} Paysafecard {{translate('to complete your payment of')}} €{{ local }}</p>
                         <button class="payment-btn btn-alipay" id="paysafecard-btn">
-                            <i class="fas fa-money-bill"></i> Pay with Paysafecard
+                            <i class="fas fa-money-bill"></i> {{translate('Pay with')}}  Paysafecard
                         </button>
                     </div>
                 </div>
 
                 <!-- Openbanking Method -->
-                <div class="payment-method" id="openbanking-method">
+                <div class="payment-method" id="alipay-method">
                     <div class="payment-method-header">
-                        <span><i class="fas fa-wallet"></i> Open Banking</span>
+                        <span><i class="fas fa-money-check-alt"></i> Openbanking</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="payment-method-content">
-                        <p style="margin-bottom: 1.5rem; color: var(--gray);">You will be redirected to Open Banking to complete your payment of €{{ "%.2f"|format(total_local * 1.06) }}</p>
+                        <p style="margin-bottom: 1.5rem; color: var(--gray);">{{translate('You will be redirected to')}} Openbanking {{translate('to complete your payment of')}} €{{ local }}</p>
                         <button class="payment-btn btn-alipay" id="openbanking-btn">
-                            <i class="fas fa-wallet"></i> Pay with Open Banking
+                            <i class="fas fa-money-check-alt"></i> {{translate('Pay with')}}  Openbanking
                         </button>
                     </div>
                 </div>
 
                 <!-- Paypal Method -->
-                <div class="payment-method" id="paypal-method">
+                <div class="payment-method" id="alipay-method">
                     <div class="payment-method-header">
                         <span><i class="fab fa-paypal"></i> Paypal</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="payment-method-content">
-                        <p style="margin-bottom: 1.5rem; color: var(--gray);">You will be redirected to Paypal to complete your payment of €{{ "%.2f"|format(total_local * 1.06) }}</p>
+                        <p style="margin-bottom: 1.5rem; color: var(--gray);">{{translate('You will be redirected to')}} Paypal {{translate('to complete your payment of')}} €{{ local }}</p>
                         <button class="payment-btn btn-alipay" id="paypal-btn">
-                            <i class="fab fa-paypal"></i> Pay with Paypal
+                            <i class="fab fa-paypal"></i> {{translate('Pay with')}}  Paypal
                         </button>
                     </div>
                 </div>
@@ -470,9 +470,9 @@
                         <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="payment-method-content">
-                        <p style="margin-bottom: 1.5rem; color: var(--gray);">You will be redirected to Alipay to complete your payment of €{{ "%.2f"|format(total_local * 1.06) }}</p>
+                        <p style="margin-bottom: 1.5rem; color: var(--gray);">{{translate('You will be redirected to')}} Alipay {{translate('to complete your payment of')}} €{{ local }}</p>
                         <button class="payment-btn btn-alipay" id="alipay-btn">
-                            <i class="fab fa-alipay"></i> Pay with Alipay
+                            <i class="fab fa-alipay"></i> {{translate('Pay with')}}  Alipay
                         </button>
                     </div>
                 </div>
@@ -480,18 +480,18 @@
                 <!-- WeChat Pay Method -->
                 <div class="payment-method" id="wechat-method">
                     <div class="payment-method-header">
-                        <span><i class="fab fa-weixin"></i> WeChat Pay</span>
+                        <span><i class="fab fa-weixin"></i>WeChat Pay</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="payment-method-content">
     <!-- Original instructional text -->
     <p id="wechat-message" style="margin-bottom: 1.5rem; color: var(--gray);">
-        QR-Code will be displayed to complete your payment of €{{ "%.2f"|format(total_local * 1.06) }}
+        {{translate('QR-Code will be displayed to complete your payment of')}} €{{ local }}
     </p>
 
     <!-- Button to trigger QR code generation -->
     <button class="payment-btn btn-wechat" id="wechat-btn">
-        <i class="fab fa-weixin"></i> Pay with WeChat
+        <i class="fab fa-weixin"></i> {{translate('Pay with')}} WeChat Pay
     </button>
 
     <!-- QR Code image container (initially hidden) -->
@@ -609,7 +609,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    amount: {{ total_local * 1.06 }},
+                    amount: {{ local_numeric }},
                     currency: 'EUR'
                 })
             });
@@ -636,7 +636,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    amount: {{ total_local * 1.06 }},
+                    amount: {{local_numeric }},
                     currency: 'EUR'
                 })
             });
@@ -663,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    amount: {{ total_local * 1.06 }},
+                    amount: {{local_numeric }},
                     currency: 'EUR'
                 })
             });
@@ -691,7 +691,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    amount: {{ total_local * 1.06 }},
+                    amount: {{local_numeric}},
                     currency: 'EUR'
                 })
             });
@@ -718,7 +718,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    amount: {{ total_local * 1.06 }},
+                    amount: {{ local_numeric}},
                     currency: 'EUR'
                 })
             });
@@ -745,7 +745,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                amount: {{ total_local * 1.06 }},
+                amount: {{local_numeric}},
                 currency: 'EUR'
             })
         });

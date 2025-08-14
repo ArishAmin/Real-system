@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang_code }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -227,24 +227,24 @@
     <div class="container">
         <h1 class="page-title">
             <i class="fas fa-file-invoice-dollar"></i>
-            Select Bills to Pay
+            {{translate('Select Bills to Pay')}}
         </h1>
         
         <div class="invoice-list">
             <!-- Latest Invoice (just created) -->
             <div class="invoice-card selected" data-id="{{ latest_invoice.invoice_id }}" data-amount="{{ latest_invoice.amount }}">
                 <div class="invoice-header">
-                    <div class="invoice-id">Invoice #{{ latest_invoice.invoice_id }}</div>
+                    <div class="invoice-id">{{translate('Invoice')}} #{{ latest_invoice.invoice_id }}</div>
                     <div class="invoice-date">{{ latest_invoice.date }}</div>
                 </div>
                 <div class="invoice-details">
                     <div class="invoice-description">{{ latest_invoice.description }}</div>
                     <div class="invoice-amount">${{ "%.2f"|format(latest_invoice.amount) }}</div>
                 </div>
-                <div class="vendor-id"><i class="fas fa-user-tie"></i> Vendor: {{ latest_invoice.vendor_id }}</div>
+                <div class="vendor-id"><i class="fas fa-user-tie"></i> {{translate('Vendor')}}: {{ latest_invoice.vendor_id }}</div>
                 <div class="checkbox-container">
                     <input type="checkbox" id="invoice-{{ latest_invoice.invoice_id }}" checked>
-                    <label for="invoice-{{ latest_invoice.invoice_id }}">Pay this invoice</label>
+                    <label for="invoice-{{ latest_invoice.invoice_id }}">{{translate('Pay this invoice')}}</label>
                 </div>
             </div>
 
@@ -252,17 +252,17 @@
             {% for invoice in random_invoices %}
             <div class="invoice-card" data-id="{{ invoice.invoice_id }}" data-amount="{{ invoice.amount }}">
                 <div class="invoice-header">
-                    <div class="invoice-id">Invoice #{{ invoice.invoice_id }}</div>
+                    <div class="invoice-id">{{translate('Invoice')}} #{{ invoice.invoice_id }}</div>
                     <div class="invoice-date">{{ invoice.date }}</div>
                 </div>
                 <div class="invoice-details">
                     <div class="invoice-description">{{ invoice.description }}</div>
                     <div class="invoice-amount">${{ "%.2f"|format(invoice.amount) }}</div>
                 </div>
-                <div class="vendor-id"><i class="fas fa-user-tie"></i> Vendor: {{ latest_invoice.vendor_id }}</div>
+                <div class="vendor-id"><i class="fas fa-user-tie"></i> {{translate('Vendor')}}: {{ latest_invoice.vendor_id }}</div>
                 <div class="checkbox-container">
                     <input type="checkbox" id="invoice-{{ invoice.invoice_id }}">
-                    <label for="invoice-{{ invoice.invoice_id }}">Pay this invoice</label>
+                    <label for="invoice-{{ invoice.invoice_id }}">{{translate('Pay this invoice')}}</label>
                 </div>
             </div>
             {% endfor %}
@@ -271,14 +271,14 @@
         <div class="total-section">
             <div>
                 <div class="total-amount">
-                    Total Amount: $<span id="total-amount">{{ "%.2f"|format(latest_invoice.amount) }}</span>
+                    {{translate('Total Amount:')}} $<span id="total-amount">{{ "%.2f"|format(latest_invoice.amount) }}</span>
                 </div>
                 <div class="selected-count">
-                    <span id="selected-count">1</span> invoice(s) selected
+                    <span id="selected-count">1</span> {{translate('invoice(s) selected')}}
                 </div>
             </div>
             <button id="pay-selected" class="btn">
-                <i class="fas fa-credit-card"></i> Proceed to Payment
+                <i class="fas fa-credit-card"></i> {{translate('Proceed to Payment')}}
             </button>
         </div>
     </div>

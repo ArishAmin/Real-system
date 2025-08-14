@@ -5,6 +5,8 @@ import os
 from supabase import create_client, Client
 import random
 import requests
+from argostranslate.translate import get_installed_languages
+import argostranslate.package
 
 app = Flask(__name__)
 app.secret_key = 'your_super_secret_key_here'
@@ -15,6 +17,16 @@ WORLDPAY_PASSWORD = os.getenv('WORLDPAY_PASSWORD')
 SUPABASE_URL = "https://tddovxrnfnrdvrludfwb.supabase.co"
 SUPABASE_KEY ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkZG92eHJuZm5yZHZybHVkZndiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyOTUwMTgsImV4cCI6MjA2OTg3MTAxOH0.iTug0w1UXP9gRWIyhhYQrudt-UAASXAvWtvXfhe_oqI"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# Path to your local .argos_models folder (inside your project directory)
+model_dir = os.path.join(os.path.dirname(__file__), ".argos_models")
+
+# Install all .argosmodel files found in that folder
+for filename in os.listdir(model_dir):
+    if filename.endswith(".argosmodel"):
+        file_path = os.path.join(model_dir, filename)
+        print(f"Installing Argos model from {file_path}...")
+        argostranslate.package.install_from_path(file_path)
 
 # Country data
 COUNTRIES = [
@@ -38,7 +50,7 @@ LANGUAGE_MAP = {
     "France": "fr",
     "Japan": "ja",
     "United Kingdom": "en",
-    "India": "en",
+    "India": "hi",
     "Malaysia": "ms",
     "Belgium": "nl",
     "Italy": "it"
@@ -56,37 +68,84 @@ INVOICE_DESCRIPTIONS = [
     "Data Analysis"
 ]
 
+EUROPEAN_COUNTRIES = {"Germany", "France", "Italy", "Belgium"}
+
+def format_amount(amount, country):
+    
+    if country in EUROPEAN_COUNTRIES:
+        # European style: comma for decimal, dot for thousands
+        return f"{amount:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    else:
+        # US/international style
+        return f"{amount:,.2f}"
+
+@app.context_processor
+def inject_translation():
+    country = session.get('country', 'United States')  
+    lang_code = LANGUAGE_MAP.get(country, 'en')  
+    return dict(
+        translate=lambda text: translate_text(text, lang_code),
+        lang_code=lang_code
+    )
+
 @app.route('/')
 def index():
     return render_template('index.html', countries=COUNTRIES)
 
+def translate_text(text, target_lang):
+    # Get installed languages
+    installed_languages = get_installed_languages()
+    
+    # Find source (English) and target language (e.g., 'zh')
+    from_lang = next((lang for lang in installed_languages if lang.code == "en"), None)
+    to_lang = next((lang for lang in installed_languages if lang.code == target_lang), None)
+    
+    if from_lang and to_lang:
+        # Translate the text
+        translation = from_lang.get_translation(to_lang)
+        if translation:
+            return translation.translate(text)
+    
+    return text  # Fallback if translation fails
+
 @app.route('/bills')
 def bills():
+    lang_code = LANGUAGE_MAP.get(session.get('country'))
     # Get the latest invoice (the one just created)
     latest_invoice = supabase.table('invoices').select('*').order('created_at', desc=True).limit(1).execute().data[0]
-    random_invoices = generate_random_invoices(3)
+    latest_invoice['description'] = translate_text(latest_invoice['description'], lang_code)
+    latest_invoice['vendor_id']= translate_text(latest_invoice['vendor_id'], lang_code)
     
-    lang_code = LANGUAGE_MAP.get(session.get('country'))
 
+    random_invoices = generate_random_invoices(3)
+        
     return render_template('bills.html', 
                          latest_invoice=latest_invoice,
                          random_invoices=random_invoices,
                          lang_code=lang_code,)
 
 def generate_random_invoices(count):
+    lang_code = LANGUAGE_MAP.get(session.get('country'))
+
     descriptions = [
-        "Web Development Services",
-        "Consulting Fees",
-        "Software License",
-        "Cloud Hosting",
-        "Technical Support",
-        "UI/UX Design",
-        "API Integration",
-        "Data Analysis",
-        "Server Maintenance",
-        "Database Administration"
+        translate_text("Web Development Services", lang_code),
+        translate_text("Consulting Fees", lang_code),
+        translate_text("Software License", lang_code),
+        translate_text("Cloud Hosting", lang_code),
+        translate_text("Technical Support", lang_code),
+        translate_text("UI/UX Design", lang_code),
+        translate_text("API Integration", lang_code),
+        translate_text("Data Analysis", lang_code),
+        translate_text("Server Maintenance", lang_code),
+        translate_text("Database Administration", lang_code),
     ]
-    
+    if lang_code == 'de':
+        if "Web Development Services" in descriptions:
+            descriptions[descriptions.index("Web Development Services")] = "Webentwicklung Dienstleistungen"
+        if "Consulting Fees" in descriptions:
+            descriptions[descriptions.index("Consulting Fees")] = "Beratungsgebühren"
+        
+
     invoices = []
     for _ in range(count):
         # Generate random date within last 30 days
@@ -158,56 +217,49 @@ def process_payment():
             'total_amount': data['totalAmount']
         })
 
-        country = session.get('country', '')
-        
+        country = session.get('country')
+
         # Define country-specific templates and settings
         COUNTRY_SETTINGS = {
-            'China': {'template': 'china.html',
-                      'exchange_rate': 7.18},
-            'India': {'template': 'india.html',
-                      'exchange_rate': 83.5},
-            'United States': {'template': 'united_states.html',
-                              'exchange_rate': 1}, 
-            'Malaysia': {'template': 'malaysia.html',
-                         'exchange_rate': 4.5},
-            'Germany': {'template': 'germany.html',
-                        'exchange_rate': 0.85},
-            'France': {'template': 'france.html',
-                       'exchange_rate': 0.85},
-            'Italy': {'template': 'italy.html',
-                      'exchange_rate': 0.85},
-            'Belgium': {'template': 'belgium.html',
-                        'exchange_rate': 0.85},
-            'United Kingdom': {'template': 'united_kingdom.html',
-                               'exchange_rate': 0.75},
-            'Japan': {'template': 'japan.html',
-                      'exchange_rate': 110.0},
-
+            'China': {'template': 'china.html', 'exchange_rate': 7.18},
+            'India': {'template': 'india.html', 'exchange_rate': 83.5},
+            'United States': {'template': 'united_states.html', 'exchange_rate': 1},
+            'Malaysia': {'template': 'malaysia.html', 'exchange_rate': 4.5},
+            'Germany': {'template': 'germany.html', 'exchange_rate': 0.85},
+            'France': {'template': 'france.html', 'exchange_rate': 0.85},
+            'Italy': {'template': 'italy.html', 'exchange_rate': 0.85},
+            'Belgium': {'template': 'belgium.html', 'exchange_rate': 0.85},
+            'United Kingdom': {'template': 'united_kingdom.html', 'exchange_rate': 0.75},
+            'Japan': {'template': 'japan.html', 'exchange_rate': 110.0}
         }
-        
+
         # Get country settings or use defaults
         settings = COUNTRY_SETTINGS.get(country)
-        total_local= session['total_amount'] * settings['exchange_rate'] if settings else session['total_amount']
-        
+
+        total_local = session['total_amount'] * settings['exchange_rate'] if settings else session['total_amount']
+        total = total_local * 1.06
+        formatted_total_local = format_amount(total, country)
         lang_code = LANGUAGE_MAP.get(country)
-        
+
         return render_template(
             settings['template'],
             country=session.get('country_name', ''),
             country_code=country,
             exchange_rate=settings['exchange_rate'],
-            total_local=total_local,
+            local=formatted_total_local,
+            local_numeric=total,
             date=datetime.now().strftime('%Y-%m-%d'),
             total_usd=session['total_amount'],
             lang_code=lang_code,
         )
-        
+
     except Exception as e:
         app.logger.error(f"Payment processing error: {str(e)}")
         return jsonify({
             'status': 'error',
             'message': 'Payment processing failed'
         }), 500
+
 
 @app.route('/process_card', methods=['POST'])
 def process_card():
@@ -358,7 +410,10 @@ def process_card():
         
         # 4. Calculate amount in local currency
         usd_amount = float(session.get('total_amount', 0))
-        local_amount = int(usd_amount * config['exchange_rate'] * 100)  # in cents
+        if country == 'Japan':
+            local_amount=int(usd_amount * config['exchange_rate'])
+        else:
+            local_amount = int(usd_amount * config['exchange_rate'] * 100)  # in cents
 
         # 5. Build payload with country-specific details
         payload = {
@@ -404,12 +459,13 @@ def process_card():
         # 7. Handle response
         if response.status_code == 201:
             data = response.json()
+            local=format_amount(local_amount / 100, country)
             payment_url = data["_links"]["self"]["href"]
             payment_id = payment_url.split("/payments/")[1].split("/")[0]
             session.update({
                 'payment_id': payment_id,
                 'transaction_ref': payload['transactionReference'],
-                'paid_amount': local_amount / 100,
+                'paid_amount': local,
                 'paid_currency': config['currency'],
                 'payment_method': 'card',
                 'card_last4': payload['instruction']['paymentInstrument']['cardNumber'][-4:]
@@ -535,8 +591,11 @@ def process_alipay():
 
         config = COUNTRY_SETTINGS[country]
         
-        total_amount = session.get('total_amount', 0)
-        local_amount = float(total_amount) * config['exchange_rate'] 
+        usd_amount = session.get('total_amount', 0)
+        if country == 'Japan':
+            local_amount=int(usd_amount * config['exchange_rate'])
+        else:
+            local_amount = int(usd_amount * config['exchange_rate'] * 100)  # in cents 
 
         # 3. Build fixed Alipay payload (structure never changes)
         payload = {
@@ -547,7 +606,7 @@ def process_alipay():
             "instruction": {
                 "method": "alipay_cn",
                 "value": {
-                    "amount": int(float(local_amount) * 100),  # cents
+                    "amount": local_amount,  
                     "currency": config['currency']
                 },
                 "narrative": {
@@ -587,10 +646,11 @@ def process_alipay():
         # 5. Handle response
         if response.status_code == 201:
             data = response.json()
+            local=format_amount(local_amount / 100, country)
             session.update({
                 'payment_id': data.get('paymentId'),
                 'transaction_ref': payload['transactionReference'],
-                'paid_amount': payload['instruction']['value']['amount'] / 100,
+                'paid_amount': local,
                 'paid_currency': config['currency']
             })
             return jsonify({
@@ -609,7 +669,7 @@ def process_alipay():
 
 @app.route('/process_wechatpay', methods=['POST'])
 def process_wechatpay():
-    """Process card payments with country-specific configurations"""
+    
     try:
         # 1. Get country from session and validate
         country = session.get('country')  
@@ -659,7 +719,10 @@ def process_wechatpay():
         
         # 4. Calculate amount in local currency
         usd_amount = float(session.get('total_amount', 0))
-        local_amount = int(usd_amount * config['exchange_rate'] * 100)  # in cents
+        if country == 'Japan':
+            local_amount=int(usd_amount * config['exchange_rate'])
+        else:
+            local_amount = int(usd_amount * config['exchange_rate'] * 100)    # in cents
 
         # 5. Build payload with country-specific details
         payload = {
@@ -699,12 +762,13 @@ def process_wechatpay():
         # 7. Handle response
         if response.status_code == 201:
             data = response.json()
+            local=format_amount(local_amount / 100, country)
             session.update({
                 'payment_id': data.get('paymentId'),
                 'transaction_ref': payload['transactionReference'],
-                'paid_amount': local_amount / 100,
+                'paid_amount': local,
                 'paid_currency': config['currency'],
-                'payment_method': 'card',
+                'payment_method': 'wechatpay',
                 
             })
             
@@ -992,8 +1056,11 @@ def process_paypal():
         config = COUNTRY_CONFIG[country]
         
         
-        total_amount = session.get('total_amount', 0)
-        local_amount = int(total_amount * config['exchange_rate']* 100)  # in cents
+        usd_amount = session.get('total_amount', 0)
+        if country == 'Japan':
+            local_amount=int(usd_amount * config['exchange_rate'])
+        else:
+            local_amount = int(usd_amount * config['exchange_rate'] * 100)  # in cents
 
         
         payload = {
@@ -1049,10 +1116,11 @@ def process_paypal():
         # 5. Handle response
         if response.status_code == 201:
             data = response.json()
+            local=format_amount(local_amount / 100, country)
             session.update({
                 'payment_id': data.get('paymentId'),
                 'transaction_ref': payload['transactionReference'],
-                'paid_amount': payload['instruction']['value']['amount'] / 100,
+                'paid_amount': local,
                 'paid_currency': config['currency']
             })
             return jsonify({
@@ -1129,7 +1197,7 @@ def process_paysafecard():
         config = COUNTRY_SETTINGS[country]
         
         total_amount = session.get('total_amount', 0)
-        local_amount = float(total_amount) * config['exchange_rate'] 
+        local_amount = float(total_amount) * config['exchange_rate'] * 100  # in cents
 
         # 3. Build fixed paysafecard payload (structure never changes)
         payload = {
@@ -1140,7 +1208,7 @@ def process_paysafecard():
             "instruction": {
                 "method": "paysafecard",
                 "value": {
-                    "amount": int(float(local_amount) * 100),  # cents
+                    "amount": int(float(local_amount)), 
                     "currency": config['currency']
                 },
                 "narrative": {
@@ -1175,10 +1243,11 @@ def process_paysafecard():
         # 5. Handle response
         if response.status_code == 201:
             data = response.json()
+            local=format_amount(local_amount / 100, country)
             session.update({
                 'payment_id': data.get('paymentId'),
                 'transaction_ref': payload['transactionReference'],
-                'paid_amount': payload['instruction']['value']['amount'] / 100,
+                'paid_amount': local,
                 'paid_currency': config['currency']
             })
             return jsonify({
@@ -1270,7 +1339,7 @@ def process_openbanking():
         config = COUNTRY_SETTINGS[country]
         
         total_amount = session.get('total_amount', 0)
-        local_amount = float(total_amount) * config['exchange_rate'] 
+        local_amount = float(total_amount) * config['exchange_rate'] *100  # in cents
 
         # 3. Build fixed openbanking payload (structure never changes)
         payload = {
@@ -1282,7 +1351,7 @@ def process_openbanking():
                 "method": "open_banking",
                 "expiryIn": 200, 
                 "value": {
-                    "amount": int(float(local_amount) * 100),  # cents
+                    "amount": int(float(local_amount)), 
                     "currency": config['currency']
                 },
                 "narrative": {
@@ -1320,10 +1389,11 @@ def process_openbanking():
         # 5. Handle response
         if response.status_code == 201:
             data = response.json()
+            local=format_amount(local_amount / 100, country)
             session.update({
                 'payment_id': data.get('paymentId'),
                 'transaction_ref': payload['transactionReference'],
-                'paid_amount': payload['instruction']['value']['amount'] / 100,
+                'paid_amount': local,
                 'paid_currency': config['currency']
             })
             return jsonify({
@@ -1344,7 +1414,7 @@ def process_openbanking():
 def process_bancontact():
         
         total_amount = session.get('total_amount', 0)
-        local_amount = float(total_amount) * 0.85 
+        local_amount = float(total_amount) * 0.85 *100  # in cents
 
         # 3. Build fixed bancontact payload (structure never changes)
         payload = {
@@ -1355,7 +1425,7 @@ def process_bancontact():
             "instruction": {
                 "method": "bancontact",
                 "value": {
-                    "amount": int(float(local_amount) * 100),  # cents
+                    "amount": int(float(local_amount)),
                     "currency": "EUR"
                 },
                 "narrative": {
@@ -1391,10 +1461,12 @@ def process_bancontact():
         # 5. Handle response
         if response.status_code == 201:
             data = response.json()
+            country = session.get('country', 'Belgium')
+            local=format_amount(local_amount / 100, country)
             session.update({
                 'payment_id': data.get('paymentId'),
                 'transaction_ref': payload['transactionReference'],
-                'paid_amount': payload['instruction']['value']['amount'] / 100,
+                'paid_amount': local,
                 'paid_currency': 'EUR',
             })
             return jsonify({
@@ -1464,10 +1536,12 @@ def process_konbini():
         # 5. Handle response
         if response.status_code == 201:
             data = response.json()
+            country = session.get('country', 'Japan')
+            local=format_amount(local_amount / 100, country)
             session.update({
                 'payment_id': data.get('paymentId'),
                 'transaction_ref': payload['transactionReference'],
-                'paid_amount': payload['instruction']['value']['amount'] / 100,
+                'paid_amount': local,
                 'paid_currency': 'JPY'
             })
             return jsonify({
@@ -1483,6 +1557,10 @@ def process_konbini():
     
 @app.route('/success')
 def payment_success():
+
+    country = session.get('country', '')
+    lang_code = LANGUAGE_MAP.get(country)
+
     """Unified success page for all payment methods"""
     return render_template('success.html',
         payment_id=session.get('payment_id'),
@@ -1491,7 +1569,8 @@ def payment_success():
         amount_paid=session.get('paid_amount'),
         currency=session.get('paid_currency'),
         method=session.get('payment_method'),
-        date=datetime.now().strftime('%Y-%m-%d %H:%M')
+        date=datetime.now().strftime('%Y-%m-%d %H:%M'),
+        lang_code=lang_code,
     )
 
 if __name__ == '__main__':

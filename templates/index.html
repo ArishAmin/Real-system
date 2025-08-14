@@ -599,6 +599,21 @@
                 statusMessage.classList.remove('hidden');
             }
         });
+        document.addEventListener("DOMContentLoaded", function() {
+    const select = document.getElementById("country");
+
+    // Get all options except the first "Select a country"
+    const options = Array.from(select.options).slice(1);
+
+    // Sort options alphabetically by text
+    options.sort((a, b) => a.text.localeCompare(b.text));
+
+    // Remove all existing options (except the first)
+    select.length = 1;
+
+    // Append sorted options back
+    options.forEach(option => select.add(option));
+});
     </script>
 </body>
 </html>
