@@ -7,41 +7,41 @@ import random
 import requests
 from argostranslate.translate import get_installed_languages
 import zipfile
-import tempfile
-import shutil
 import gdown
-import atexit
 
 app = Flask(__name__)
 app.secret_key = 'your_super_secret_key_here'
 
+# Store in a stable folder for the app's lifetime
+MODELS_DIR = os.path.join(os.path.dirname(__file__), "argos_models")
+MODELS_READY = False  # memory-only flag
+
 def setup_argos_models():
+    global MODELS_READY
+    if MODELS_READY:
+        print("Models already loaded in memory.")
+        return
+    if os.path.exists(os.path.join(MODELS_DIR, "en_zh")):
+        print("Models already exist on disk.")
+        MODELS_READY = True
+        return
+
+    print("Downloading translation models...")
+    os.makedirs(MODELS_DIR, exist_ok=True)
     GD_FILE_ID = "1XcQvUgtGM0zH2PjbcMG3sC4CK1wLtMy3"
     GD_URL = f"https://drive.google.com/uc?id={GD_FILE_ID}"
-    
-    # Create a temporary directory for models
-    models_dir = tempfile.mkdtemp(prefix='argos_models_')
-    
-    # Clean up function (optional)
-    def cleanup():
-        shutil.rmtree(models_dir, ignore_errors=True)
-    atexit.register(cleanup)
-    
-    # Download from Google Drive
-    zip_path = os.path.join(models_dir, 'argos_models.zip')
-    gdown.download(GD_URL, zip_path, quiet=False)
-    
-    # Extract models
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        zip_ref.extractall(models_dir)
-    
-    # Set environment variable
-    os.environ['ARGOS_TRANSLATE_PACKAGES_DIR'] = models_dir
-    
-    return models_dir
+    zip_path = os.path.join(MODELS_DIR, "argos_models.zip")
 
-# Initialize models before first request
-models_dir = setup_argos_models()
+    gdown.download(GD_URL, zip_path, quiet=False)
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(MODELS_DIR)
+    os.remove(zip_path)
+
+    MODELS_READY = True
+    print("Models downloaded and ready.")
+
+setup_argos_models()
+os.environ['ARGOS_TRANSLATE_PACKAGES_DIR'] = MODELS_DIR
 
 WORLDPAY_USERNAME = os.getenv('WORLDPAY_USERNAME')
 WORLDPAY_PASSWORD = os.getenv('WORLDPAY_PASSWORD')
