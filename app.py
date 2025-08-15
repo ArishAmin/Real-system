@@ -6,10 +6,42 @@ from supabase import create_client, Client
 import random
 import requests
 from argostranslate.translate import get_installed_languages
-import argostranslate.package
+import zipfile
+import tempfile
+import shutil
+import gdown
+import atexit
 
 app = Flask(__name__)
 app.secret_key = 'your_super_secret_key_here'
+
+def setup_argos_models():
+    GD_FILE_ID = "1XcQvUgtGM0zH2PjbcMG3sC4CK1wLtMy3"
+    GD_URL = f"https://drive.google.com/uc?id={GD_FILE_ID}"
+    
+    # Create a temporary directory for models
+    models_dir = tempfile.mkdtemp(prefix='argos_models_')
+    
+    # Clean up function (optional)
+    def cleanup():
+        shutil.rmtree(models_dir, ignore_errors=True)
+    atexit.register(cleanup)
+    
+    # Download from Google Drive
+    zip_path = os.path.join(models_dir, 'argos_models.zip')
+    gdown.download(GD_URL, zip_path, quiet=False)
+    
+    # Extract models
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(models_dir)
+    
+    # Set environment variable
+    os.environ['ARGOS_TRANSLATE_PACKAGES_DIR'] = models_dir
+    
+    return models_dir
+
+# Initialize models before first request
+models_dir = setup_argos_models()
 
 WORLDPAY_USERNAME = os.getenv('WORLDPAY_USERNAME')
 WORLDPAY_PASSWORD = os.getenv('WORLDPAY_PASSWORD')
@@ -17,16 +49,6 @@ WORLDPAY_PASSWORD = os.getenv('WORLDPAY_PASSWORD')
 SUPABASE_URL = "https://tddovxrnfnrdvrludfwb.supabase.co"
 SUPABASE_KEY ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkZG92eHJuZm5yZHZybHVkZndiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyOTUwMTgsImV4cCI6MjA2OTg3MTAxOH0.iTug0w1UXP9gRWIyhhYQrudt-UAASXAvWtvXfhe_oqI"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-# Path to your local .argos_models folder (inside your project directory)
-model_dir = os.path.join(os.path.dirname(__file__), ".argos_models")
-
-# Install all .argosmodel files found in that folder
-for filename in os.listdir(model_dir):
-    if filename.endswith(".argosmodel"):
-        file_path = os.path.join(model_dir, filename)
-        print(f"Installing Argos model from {file_path}...")
-        argostranslate.package.install_from_path(file_path)
 
 # Country data
 COUNTRIES = [
