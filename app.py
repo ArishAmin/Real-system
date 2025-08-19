@@ -8,7 +8,7 @@ import requests
 from argostranslate.translate import get_installed_languages
 
 app = Flask(__name__)
-app.secret_key = 'your_super_secret_key_here'
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "your_super_secret_key_here")
 
 MODELS_DIR = os.path.join(os.path.dirname(__file__), "argos_models")
 os.environ['ARGOS_TRANSLATE_PACKAGES_DIR'] = MODELS_DIR
