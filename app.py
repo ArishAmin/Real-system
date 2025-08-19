@@ -6,14 +6,16 @@ from supabase import create_client, Client
 import random
 import requests
 from argostranslate.translate import get_installed_languages
-import zipfile
-import gdown
 
 app = Flask(__name__)
 app.secret_key = 'your_super_secret_key_here'
 
 MODELS_DIR = os.path.join(os.path.dirname(__file__), "argos_models")
 os.environ['ARGOS_TRANSLATE_PACKAGES_DIR'] = MODELS_DIR
+
+print("Using Argos models from:", MODELS_DIR)
+print("Contents of argos_models:", os.listdir(MODELS_DIR))
+
 
 WORLDPAY_USERNAME = os.getenv('WORLDPAY_USERNAME')
 WORLDPAY_PASSWORD = os.getenv('WORLDPAY_PASSWORD')
