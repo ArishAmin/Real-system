@@ -12,35 +12,7 @@ import gdown
 app = Flask(__name__)
 app.secret_key = 'your_super_secret_key_here'
 
-# Store in a stable folder for the app's lifetime
 MODELS_DIR = os.path.join(os.path.dirname(__file__), "argos_models")
-MODELS_READY = False  # memory-only flag
-
-def setup_argos_models():
-    global MODELS_READY
-    if MODELS_READY:
-        print("Models already loaded in memory.")
-        return
-    if os.path.exists(os.path.join(MODELS_DIR, "en_zh")):
-        print("Models already exist on disk.")
-        MODELS_READY = True
-        return
-
-    print("Downloading translation models...")
-    os.makedirs(MODELS_DIR, exist_ok=True)
-    GD_FILE_ID = "1XcQvUgtGM0zH2PjbcMG3sC4CK1wLtMy3"
-    GD_URL = f"https://drive.google.com/uc?id={GD_FILE_ID}"
-    zip_path = os.path.join(MODELS_DIR, "argos_models.zip")
-
-    gdown.download(GD_URL, zip_path, quiet=False)
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        zip_ref.extractall(MODELS_DIR)
-    os.remove(zip_path)
-
-    MODELS_READY = True
-    print("Models downloaded and ready.")
-
-setup_argos_models()
 os.environ['ARGOS_TRANSLATE_PACKAGES_DIR'] = MODELS_DIR
 
 WORLDPAY_USERNAME = os.getenv('WORLDPAY_USERNAME')
