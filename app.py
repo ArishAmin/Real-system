@@ -8,15 +8,13 @@ import requests
 
 
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "your_super_secret_key_here")
+app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
 MODELS_DIR = os.path.join(os.path.dirname(__file__), "argos_models")
 os.environ['ARGOS_TRANSLATE_PACKAGES_DIR'] = MODELS_DIR
 
-print("Using Argos models from:", MODELS_DIR)
-print("Contents of argos_models:", os.listdir(MODELS_DIR))
 from argostranslate.translate import get_installed_languages
-
+from argostranslate import translate
 
 WORLDPAY_USERNAME = os.getenv('WORLDPAY_USERNAME')
 WORLDPAY_PASSWORD = os.getenv('WORLDPAY_PASSWORD')
@@ -89,21 +87,26 @@ def inject_translation():
 def index():
     return render_template('index.html', countries=COUNTRIES)
 
+# Translator cache to avoid reloading on each request
+TRANSLATORS = {}
+
+def get_translator(from_code, to_code):
+    key = (from_code, to_code)
+    if key not in TRANSLATORS:
+        langs = translate.get_installed_languages()
+        from_lang = next((l for l in langs if l.code == from_code), None)
+        to_lang = next((l for l in langs if l.code == to_code), None)
+        if from_lang and to_lang:
+            translator = from_lang.get_translation(to_lang)
+            if translator:  # Only store if a model exists
+                TRANSLATORS[key] = translator
+    return TRANSLATORS.get(key)
+
 def translate_text(text, target_lang):
-    # Get installed languages
-    installed_languages = get_installed_languages()
-    
-    # Find source (English) and target language (e.g., 'zh')
-    from_lang = next((lang for lang in installed_languages if lang.code == "en"), None)
-    to_lang = next((lang for lang in installed_languages if lang.code == target_lang), None)
-    
-    if from_lang and to_lang:
-        # Translate the text
-        translation = from_lang.get_translation(to_lang)
-        if translation:
-            return translation.translate(text)
-    
-    return text  # Fallback if translation fails
+    translator = get_translator("en", target_lang)
+    if translator:
+        return translator.translate(text)
+    return text
 
 @app.route('/bills')
 def bills():
